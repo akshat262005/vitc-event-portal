@@ -1,0 +1,50 @@
+[
+  {
+    "id": "7e91eff0-c3b8-480b-aca2-a3bc431d3beb",
+    "clubId": "44ad0ee6-9312-47a0-a4e0-22845f2e2c9a",
+    "clubName": "IEEE Test Chapter 1783969572683",
+    "eventName": "Integration Testing Workshop 1783969572683",
+    "eventDate": "2026-07-14",
+    "eventTime": "09:00 AM - 12:00 PM",
+    "venue": "Netaji Block Hall 301",
+    "category": "Workshop",
+    "categoryOthersSpecify": "",
+    "reportFilePath": "/uploads/report-1783969572961-244042413.pdf",
+    "numberOfParticipants": 50,
+    "facultyCoordinator": "Dr. Test Coordinator",
+    "studentCoordinator": "Rohan (21BCE0231)",
+    "description": "This is an integration test workshop details.",
+    "outcome": "Successful setup and execution.",
+    "budgetUsed": 3500,
+    "photos": [],
+    "status": "Submitted Successfully",
+    "hasOD": true,
+    "submittedBy": "e937012f-3ead-41bc-adc0-8622340d08b7",
+    "createdAt": "2026-07-13T19:06:12.965Z"
+  },
+  {
+    "id": "13cd80f4-221e-4496-ba03-00ca485dae31",
+    "clubId": "961af68e-dd4e-4441-b2a5-cf650990b6f2",
+    "clubName": "CODECHEF - VIT CHENNAI",
+    "eventName": "CodeFlix",
+    "eventDate": "2026-07-08",
+    "eventTime": "09:00 AM - 05:00 PM",
+    "venue": "VOC Auditorium",
+    "category": "Competition",
+    "categoryOthersSpecify": "",
+    "reportFilePath": "/uploads/report-1783971539647-620674149.pdf",
+    "numberOfParticipants": 112,
+    "facultyCoordinator": "Dr. Shridevi S",
+    "studentCoordinator": "AK (23BCE1123)",
+    "description": "dc",
+    "outcome": "d",
+    "budgetUsed": 1200,
+    "photos": [
+      "/uploads/photos-1783971539673-651266579.jpg"
+    ],
+    "status": "Submitted Successfully",
+    "hasOD": true,
+    "submittedBy": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "createdAt": "2026-07-13T19:38:59.688Z"
+  }
+]

@@ -1,0 +1,94 @@
+[
+  {
+    "id": "781bf5dc-e124-415a-a96e-61334f46a77a",
+    "recipientRole": "Admin",
+    "title": "New Club Created",
+    "message": "Club \"IEEE Test Chapter\" has been successfully added to the portal.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:05:34.891Z"
+  },
+  {
+    "id": "559eaeea-7a34-4c5c-a9df-d5709669b358",
+    "recipientRole": "Admin",
+    "title": "New Club Created",
+    "message": "Club \"IEEE Test Chapter 1783969557664\" has been successfully added to the portal.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:05:57.761Z"
+  },
+  {
+    "id": "f4386440-d431-4555-8207-f6411e098289",
+    "recipientRole": "Admin",
+    "title": "New Club Created",
+    "message": "Club \"IEEE Test Chapter 1783969572683\" has been successfully added to the portal.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:06:12.788Z"
+  },
+  {
+    "id": "0c030003-c1d6-4c7c-a84b-6dcc9ba521f2",
+    "recipientRole": "Admin",
+    "title": "New Report Submitted",
+    "message": "Club \"IEEE Test Chapter 1783969572683\" submitted a report for \"Integration Testing Workshop 1783969572683\" conducted on 2026-07-14.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:06:12.966Z"
+  },
+  {
+    "id": "2d045c54-a346-4483-bb21-46ef88f2d393",
+    "recipientRole": "Chairperson",
+    "recipientId": "e937012f-3ead-41bc-adc0-8622340d08b7",
+    "title": "Report Submitted Successfully",
+    "message": "Your report for \"Integration Testing Workshop 1783969572683\" has been submitted successfully.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:06:12.967Z"
+  },
+  {
+    "id": "80bc99c6-4572-4556-89c4-fda7689c70d8",
+    "recipientRole": "Admin",
+    "title": "New OD Uploaded",
+    "message": "Club \"IEEE Test Chapter 1783969572683\" uploaded OD list for \"Integration Testing Workshop 1783969572683\" (2 students).",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:06:12.973Z"
+  },
+  {
+    "id": "623bb689-0363-47f8-b332-d20ecef38577",
+    "recipientRole": "Chairperson",
+    "recipientId": "e937012f-3ead-41bc-adc0-8622340d08b7",
+    "title": "OD Uploaded Successfully",
+    "message": "OD list for \"Integration Testing Workshop 1783969572683\" uploaded successfully.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:06:12.974Z"
+  },
+  {
+    "id": "554b9945-6589-4895-ad5f-79bc7d3073e3",
+    "recipientRole": "Admin",
+    "title": "New Report Submitted",
+    "message": "Club \"CODECHEF - VIT CHENNAI\" submitted a report for \"CodeFlix\" conducted on 2026-07-08.",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:38:59.690Z"
+  },
+  {
+    "id": "7e07b27b-2edc-478b-bb87-8ab60da04a2a",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "Report Submitted Successfully",
+    "message": "Your report for \"CodeFlix\" has been submitted successfully.",
+    "isRead": true,
+    "createdAt": "2026-07-13T19:38:59.693Z"
+  },
+  {
+    "id": "766523f5-d835-4b15-a1b3-9df30bce3ed0",
+    "recipientRole": "Admin",
+    "title": "New OD Uploaded",
+    "message": "Club \"CODECHEF - VIT CHENNAI\" uploaded OD list for \"CodeFlix\" (6 students).",
+    "isRead": false,
+    "createdAt": "2026-07-13T19:54:40.470Z"
+  },
+  {
+    "id": "2af39d2f-3b2d-429d-8267-4a8f568d58c7",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "OD Uploaded Successfully",
+    "message": "OD list for \"CodeFlix\" uploaded successfully.",
+    "isRead": true,
+    "createdAt": "2026-07-13T19:54:40.472Z"
+  }
+]

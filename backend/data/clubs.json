@@ -1,0 +1,836 @@
+[
+  {
+    "id": "32949347-2467-498c-b77c-0bd9de546821",
+    "name": "180DC",
+    "description": "Consulting Club",
+    "createdAt": "2026-07-13T19:13:31.498Z"
+  },
+  {
+    "id": "183986b5-d479-404f-ae49-87710782fb77",
+    "name": "ACM STUDENT CHAPTER",
+    "description": "Technical Chapter",
+    "createdAt": "2026-07-13T19:13:31.500Z"
+  },
+  {
+    "id": "0290a229-24b0-4eab-9f04-81a186f98e15",
+    "name": "ACM WOMEN",
+    "description": "Technical Chapter for Women",
+    "createdAt": "2026-07-13T19:13:31.501Z"
+  },
+  {
+    "id": "cfe32207-e15b-4808-a232-c41941c1701b",
+    "name": "AEROSPACE CLUB",
+    "description": "Aviation and Aerospace",
+    "createdAt": "2026-07-13T19:13:31.502Z"
+  },
+  {
+    "id": "4372cb1e-aa78-4a53-a948-5cf5e7ccbf62",
+    "name": "AGRHI INNOVATORS CLUB",
+    "description": "Agriculture and Innovation",
+    "createdAt": "2026-07-13T19:13:31.503Z"
+  },
+  {
+    "id": "2ebbb96f-880d-457d-82fe-0f1552ef7047",
+    "name": "ANDROID CLUB",
+    "description": "App Development",
+    "createdAt": "2026-07-13T19:13:31.504Z"
+  },
+  {
+    "id": "68563198-8929-4c3c-a927-e0d337e6e282",
+    "name": "ANIMATION CLUB",
+    "description": "Animation and Multimedia",
+    "createdAt": "2026-07-13T19:13:31.505Z"
+  },
+  {
+    "id": "186eb9b3-aa71-4c38-b189-f5ed96144300",
+    "name": "ANIME REALM",
+    "description": "Anime Culture",
+    "createdAt": "2026-07-13T19:13:31.506Z"
+  },
+  {
+    "id": "002a0d1a-c94f-4e30-a5a2-61634f9594a7",
+    "name": "ARIGNAR ANNA TAMIL MANDRAM",
+    "description": "Tamil Literary Club",
+    "createdAt": "2026-07-13T19:13:31.507Z"
+  },
+  {
+    "id": "ed211361-9b39-4efb-8bc6-73d820a1d225",
+    "name": "ARTIFICIAL INTELLIGENCE CLUB",
+    "description": "AI & Machine Learning",
+    "createdAt": "2026-07-13T19:13:31.509Z"
+  },
+  {
+    "id": "87b766fc-e223-42f1-bdb1-245fa3544332",
+    "name": "ASME STUDENT CHAPTER",
+    "description": "Mechanical Engineering",
+    "createdAt": "2026-07-13T19:13:31.510Z"
+  },
+  {
+    "id": "05ef82e2-bd85-4535-b309-cb957cad3540",
+    "name": "ATHENAEUM",
+    "description": "Literary Club",
+    "createdAt": "2026-07-13T19:13:31.511Z"
+  },
+  {
+    "id": "32dd1574-8afb-4ce6-8aa1-b154a7d3a780",
+    "name": "AUTONOMOUS UNMANNED VEHICLE CLUB",
+    "description": "Robotics and Drones",
+    "createdAt": "2026-07-13T19:13:31.512Z"
+  },
+  {
+    "id": "e4152ea5-01bd-418d-a227-b9dfdff1598b",
+    "name": "AUTOVIT",
+    "description": "Automotive and Engineering",
+    "createdAt": "2026-07-13T19:13:31.514Z"
+  },
+  {
+    "id": "c6b87064-8f10-4e1a-b72c-20e3391764fc",
+    "name": "BENGALI LITERARY SOCIETY",
+    "description": "Bengali Culture and Literature",
+    "createdAt": "2026-07-13T19:13:31.515Z"
+  },
+  {
+    "id": "43073831-c8e6-4e81-ac1c-7feb136ce95a",
+    "name": "Bionary",
+    "description": "Biotechnology and Research",
+    "createdAt": "2026-07-13T19:13:31.516Z"
+  },
+  {
+    "id": "d796ed30-20ef-4eb2-a482-6346f8f43807",
+    "name": "BIOSPHERE CLUB",
+    "description": "Environment and Nature",
+    "createdAt": "2026-07-13T19:13:31.518Z"
+  },
+  {
+    "id": "d6f31520-76f7-472e-a1a6-07d29a03b4cb",
+    "name": "BUSINESS INNOVATION COMMUNITY (BIC)",
+    "description": "Business and Consulting",
+    "createdAt": "2026-07-13T19:13:31.520Z"
+  },
+  {
+    "id": "51302780-f8d6-4ed2-bb28-5e8c49aa7055",
+    "name": "CAD CLUB",
+    "description": "Design and CAD Modeling",
+    "createdAt": "2026-07-13T19:13:31.521Z"
+  },
+  {
+    "id": "767750b5-78d3-4437-a4e2-21e18b8ed5bb",
+    "name": "CITTAA STUDENT CHAPTER",
+    "description": "Information Technology",
+    "createdAt": "2026-07-13T19:13:31.522Z"
+  },
+  {
+    "id": "091fefd8-d3de-439e-9b92-2039824565f1",
+    "name": "AUTO-VIT",
+    "description": "Automotive Club",
+    "createdAt": "2026-07-13T19:13:31.523Z"
+  },
+  {
+    "id": "824aedb9-4500-4dc0-a4fd-2b47bb4cda29",
+    "name": "CIVITEK",
+    "description": "Civil Engineering",
+    "createdAt": "2026-07-13T19:13:31.525Z"
+  },
+  {
+    "id": "b2e937f6-bb9f-4d4b-90b3-354d4cbcfb85",
+    "name": "CLOUD COMPUTING CLUB",
+    "description": "Cloud Technologies",
+    "createdAt": "2026-07-13T19:13:31.526Z"
+  },
+  {
+    "id": "ff712260-8db4-423c-87fd-0f1b827c1304",
+    "name": "CODE Y-GEN",
+    "description": "Coding Club",
+    "createdAt": "2026-07-13T19:13:31.527Z"
+  },
+  {
+    "id": "961af68e-dd4e-4441-b2a5-cf650990b6f2",
+    "name": "CODECHEF - VIT CHENNAI",
+    "description": "Competitive Coding Chapter",
+    "createdAt": "2026-07-13T19:13:31.527Z"
+  },
+  {
+    "id": "cdbeb076-3d4b-410a-b0c6-0e2d3b3dad92",
+    "name": "CSED (VNEST)",
+    "description": "Entrepreneurship and Incubation",
+    "createdAt": "2026-07-13T19:13:31.528Z"
+  },
+  {
+    "id": "0544e84e-1fe6-4003-9a72-5d18cfa46dab",
+    "name": "CULINARY CLUB",
+    "description": "Cooking and Culinary Arts",
+    "createdAt": "2026-07-13T19:13:31.529Z"
+  },
+  {
+    "id": "c5cd5b91-b790-4d84-9b16-96939229a972",
+    "name": "CULTURE IT",
+    "description": "Cultural and Tech Hub",
+    "createdAt": "2026-07-13T19:13:31.531Z"
+  },
+  {
+    "id": "f7a6ab9c-a314-47c2-9834-639c0e1cc711",
+    "name": "CYSCOM",
+    "description": "Cyber Security Chapter",
+    "createdAt": "2026-07-13T19:13:31.532Z"
+  },
+  {
+    "id": "5696954a-3db0-46cf-b3f6-6002cd1152ad",
+    "name": "DANCE CLUB",
+    "description": "Performing Arts - Dance",
+    "createdAt": "2026-07-13T19:13:31.533Z"
+  },
+  {
+    "id": "d438f6f6-dab2-4777-921c-42c1801e0163",
+    "name": "DAO COMMUNITY",
+    "description": "Decentralized Web & Blockchain",
+    "createdAt": "2026-07-13T19:13:31.534Z"
+  },
+  {
+    "id": "467fdfd9-f8d4-408b-916d-6c36ed20625c",
+    "name": "DATA SCIENCE CLUB",
+    "description": "Data Analytics and AI",
+    "createdAt": "2026-07-13T19:13:31.535Z"
+  },
+  {
+    "id": "bf396e87-0c82-4b09-a8ca-7e8aa83f4f28",
+    "name": "DELISH CLUB",
+    "description": "Culinary and Delicacies",
+    "createdAt": "2026-07-13T19:13:31.536Z"
+  },
+  {
+    "id": "343e4c50-101f-4964-a602-f5e5eae50996",
+    "name": "DESIGNERS CLUB",
+    "description": "UI/UX and Graphic Design",
+    "createdAt": "2026-07-13T19:13:31.537Z"
+  },
+  {
+    "id": "559c7a53-6394-4574-96e0-13a4c09aedab",
+    "name": "DRAMATICS CLUB",
+    "description": "Theatre and Acting",
+    "createdAt": "2026-07-13T19:13:31.538Z"
+  },
+  {
+    "id": "90a95d30-a3c8-4888-b018-08ec1025c765",
+    "name": "DREAM MERCHANTS",
+    "description": "Marketing and Finance",
+    "createdAt": "2026-07-13T19:13:31.539Z"
+  },
+  {
+    "id": "e015cac6-593e-4d25-850d-65fcbef6f36c",
+    "name": "ENACTUS VIT CHENNAI",
+    "description": "Social Entrepreneurship",
+    "createdAt": "2026-07-13T19:13:31.540Z"
+  },
+  {
+    "id": "79bcd3c2-ceea-46cc-a673-d45cdd7695ca",
+    "name": "ENERGY AND FUEL USER'S ASSOCIATION (ENFUSE)",
+    "description": "Energy Conservation",
+    "createdAt": "2026-07-13T19:13:31.541Z"
+  },
+  {
+    "id": "28046c08-dce9-4d0e-ae8f-a7f5c19c4b8b",
+    "name": "ENGLISH LITERARY ASSOCIATION",
+    "description": "English Literature and Debating",
+    "createdAt": "2026-07-13T19:13:31.542Z"
+  },
+  {
+    "id": "cd4d2358-64d4-4424-8370-ca395172432c",
+    "name": "ENTREPRENEURSHIP CELL (E-CELL)",
+    "description": "Startups and Business",
+    "createdAt": "2026-07-13T19:13:31.543Z"
+  },
+  {
+    "id": "3148e3b9-0fed-4ff5-9f65-732660fdf5cb",
+    "name": "ENVIRONMENT & ENERGY PROTECTION CLUB (E2 PC)",
+    "description": "Eco-friendly activities",
+    "createdAt": "2026-07-13T19:13:31.544Z"
+  },
+  {
+    "id": "93fc49c7-748d-4734-8198-34c27378f80a",
+    "name": "EVENTS MANAGERS CLUB",
+    "description": "Event Operations",
+    "createdAt": "2026-07-13T19:13:31.545Z"
+  },
+  {
+    "id": "128b6832-4c98-4538-b161-c14cc2ddf5a2",
+    "name": "FILMSOCIETY",
+    "description": "Cinema and Film Appreciation",
+    "createdAt": "2026-07-13T19:13:31.546Z"
+  },
+  {
+    "id": "2b17caf7-5fd9-4d69-9b3f-b412efafe7b6",
+    "name": "FINE ARTS CLUB (TFAC)",
+    "description": "Fine Arts and Visuals",
+    "createdAt": "2026-07-13T19:13:31.548Z"
+  },
+  {
+    "id": "85fd8758-f479-4fff-adf2-10bd6da492ad",
+    "name": "FITNESS CLUB",
+    "description": "Sports and Physical Health",
+    "createdAt": "2026-07-13T19:13:31.549Z"
+  },
+  {
+    "id": "191cba63-8026-4e69-8537-b769572b4f2f",
+    "name": "FRATERNITY OF LEADERS",
+    "description": "Leadership Skills",
+    "createdAt": "2026-07-13T19:13:31.550Z"
+  },
+  {
+    "id": "efc197f2-8c23-420d-b443-5f1e0c2a14d4",
+    "name": "FRATERNITY OF YOUNG INNOVATORS (FYI)",
+    "description": "Innovation and Incubation",
+    "createdAt": "2026-07-13T19:13:31.551Z"
+  },
+  {
+    "id": "032c8ca4-e312-4118-965d-a2be879c1760",
+    "name": "FRENCH CLUB",
+    "description": "French Language and Culture",
+    "createdAt": "2026-07-13T19:13:31.552Z"
+  },
+  {
+    "id": "9690a279-b406-4ab7-9c9e-f4f9263f481b",
+    "name": "GAME DEVELOPMENT CLUB",
+    "description": "Game Design and Development",
+    "createdAt": "2026-07-13T19:13:31.553Z"
+  },
+  {
+    "id": "01525313-b258-4e7e-8a53-e83e20722641",
+    "name": "GIRL UP",
+    "description": "Women Empowerment Club",
+    "createdAt": "2026-07-13T19:13:31.553Z"
+  },
+  {
+    "id": "e99a0252-bb46-4c53-a07b-716bb5319099",
+    "name": "GOOGLE DEVELOPER GROUPS ON CAMPUS",
+    "description": "Google Developer Technologies",
+    "createdAt": "2026-07-13T19:13:31.554Z"
+  },
+  {
+    "id": "62d9e3f0-10d6-4e9c-b8a4-794a16768c37",
+    "name": "GUJARATI LITERARY ASSOCIATION",
+    "description": "Gujarati Culture",
+    "createdAt": "2026-07-13T19:13:31.555Z"
+  },
+  {
+    "id": "35b4db06-c872-4b42-8945-b7362d2be1aa",
+    "name": "HARYANA HOOD",
+    "description": "Haryanvi Culture",
+    "createdAt": "2026-07-13T19:13:31.557Z"
+  },
+  {
+    "id": "fae49842-681a-4cd6-a7ca-1a6279e57bf1",
+    "name": "HAVOLTZ",
+    "description": "Electrical and Electronic Projects",
+    "createdAt": "2026-07-13T19:13:31.558Z"
+  },
+  {
+    "id": "4c54129b-c8c5-41e3-9c65-683e41e7fcba",
+    "name": "HEALTH CLUB",
+    "description": "Healthcare Awareness",
+    "createdAt": "2026-07-13T19:13:31.559Z"
+  },
+  {
+    "id": "fe82951f-1512-4d69-b496-267612e6a3a0",
+    "name": "HINDI LITERARY ASSOCIATION",
+    "description": "Hindi Literature and Dramatics",
+    "createdAt": "2026-07-13T19:13:31.560Z"
+  },
+  {
+    "id": "b5c874a0-b27b-4bdc-9130-d0a48b87ed70",
+    "name": "HUMANOID CLUB",
+    "description": "Humanoid Robotics",
+    "createdAt": "2026-07-13T19:13:31.561Z"
+  },
+  {
+    "id": "00829dac-06ce-4588-972d-88a2c33fa84e",
+    "name": "IEEE COMPUTER SOCIETY (IEEE-CS)",
+    "description": "Computing Chapter",
+    "createdAt": "2026-07-13T19:13:31.562Z"
+  },
+  {
+    "id": "b3725267-febc-462a-9b09-f099b92b4b37",
+    "name": "IEEE ELECTRON DEVICES SOCIETY (IEEE-EDS)",
+    "description": "Semiconductors and Devices",
+    "createdAt": "2026-07-13T19:13:31.563Z"
+  },
+  {
+    "id": "f469f5d6-09ed-419d-a34f-f8c2710e039c",
+    "name": "IEEE ENGINEERING IN MEDICINE AND BIOLOGY",
+    "description": "Bio-medical Engineering",
+    "createdAt": "2026-07-13T19:13:31.565Z"
+  },
+  {
+    "id": "bd16802c-496b-4ff3-bd60-ffd7ecc4cb50",
+    "name": "IEEE MICROWAVE THEORY AND TECHNOLOGY SOCIETY (IEEE-MTTS)",
+    "description": "RF and Microwaves",
+    "createdAt": "2026-07-13T19:13:31.566Z"
+  },
+  {
+    "id": "eee16a9b-d4ee-4eac-adb7-ad865cf30747",
+    "name": "IEEE PHOTONICS SOCIETY",
+    "description": "Optics and Photonics",
+    "createdAt": "2026-07-13T19:13:31.567Z"
+  },
+  {
+    "id": "7f3710be-6afc-44a3-abe5-c21eacd15755",
+    "name": "IEEE POWER AND ENERGY SOCIETY (IEEE-PES)",
+    "description": "Power and Energy Systems",
+    "createdAt": "2026-07-13T19:13:31.568Z"
+  },
+  {
+    "id": "77e7b91f-e9bf-46a7-bad2-1e3ce30a0146",
+    "name": "IEEE ROBOTICS & AUTOMATION SOCIETY (IEEE-RAS)",
+    "description": "Automation and Robotics",
+    "createdAt": "2026-07-13T19:13:31.569Z"
+  },
+  {
+    "id": "98f31799-b7c1-4a59-aaf7-444e8876f43e",
+    "name": "IEEE SIGNAL PROCESSING SOCIETY (IEEE-SPS)",
+    "description": "Signal Processing",
+    "createdAt": "2026-07-13T19:13:31.570Z"
+  },
+  {
+    "id": "c97e4b50-519c-4269-9bf9-e55411653f89",
+    "name": "IEEE SOLID STATE CIRCUITS SOCIETY (IEEE-SSCS)",
+    "description": "IC Design and Circuits",
+    "createdAt": "2026-07-13T19:13:31.571Z"
+  },
+  {
+    "id": "6e05d133-3059-408e-8c5b-24e300b80277",
+    "name": "IEEE VEHICULAR TECHNOLOGY SOCIETY (IEEE-VTS)",
+    "description": "Vehicular Tech",
+    "createdAt": "2026-07-13T19:13:31.572Z"
+  },
+  {
+    "id": "de123d27-a750-4090-9160-c4a71c57344c",
+    "name": "IEEE WOMEN IN ENGINEERING (IEEE-WIE)",
+    "description": "Women in Tech",
+    "createdAt": "2026-07-13T19:13:31.573Z"
+  },
+  {
+    "id": "1e4229b7-0f15-46c0-81ad-5a043273ff01",
+    "name": "INDIAN ASSOCIATION OF ENERGY MANAGEMENT PROFESSIONALS (IAEMP) STUDENT CHAPTER",
+    "description": "Energy Auditing",
+    "createdAt": "2026-07-13T19:13:31.574Z"
+  },
+  {
+    "id": "be82e3de-415a-4d6f-99c3-77ae42592382",
+    "name": "INDIAN CONCRETE INSTITUTE STUDENT CHAPTER",
+    "description": "Concrete and Civil Engineering",
+    "createdAt": "2026-07-13T19:13:31.576Z"
+  },
+  {
+    "id": "e86d6697-c0a7-49c5-a529-f1d73e1d5031",
+    "name": "INSTITUTE ELECTRICAL & ELECTRONICS ENGINEERING (IEEE)",
+    "description": "IEEE Student Branch",
+    "createdAt": "2026-07-13T19:13:31.577Z"
+  },
+  {
+    "id": "92c00028-f091-484e-9984-69ca63ead4e1",
+    "name": "INTEGRATED CIRCUITS & SYSTEM DESIGN (ICSD)",
+    "description": "Micro-electronics",
+    "createdAt": "2026-07-13T19:13:31.578Z"
+  },
+  {
+    "id": "e4b9f282-4d0f-4115-a44b-274d23c02214",
+    "name": "INTERNET OF THINGS COMMUNITY (IOTHINC)",
+    "description": "IoT Research and Projects",
+    "createdAt": "2026-07-13T19:13:31.579Z"
+  },
+  {
+    "id": "ea500361-f8d7-4198-a0d8-7a50d797732b",
+    "name": "ISPACE",
+    "description": "Astronomical and Space Club",
+    "createdAt": "2026-07-13T19:13:31.581Z"
+  },
+  {
+    "id": "679bdc3d-70fe-40cf-aa7b-953b6ed6b2af",
+    "name": "JAPANESE CLUB",
+    "description": "Japanese Culture and Language",
+    "createdAt": "2026-07-13T19:13:31.582Z"
+  },
+  {
+    "id": "fa57a80d-7ebc-4cc4-b642-4a1c0b4c4fe1",
+    "name": "KANNADA LITERARY ASSOCIATION",
+    "description": "Kannada Culture and Literature",
+    "createdAt": "2026-07-13T19:13:31.583Z"
+  },
+  {
+    "id": "26eeac70-6ff7-46bd-a6ba-c37c93d03f72",
+    "name": "LINUX CLUB",
+    "description": "Open Source and Linux Advocacy",
+    "createdAt": "2026-07-13T19:13:31.584Z"
+  },
+  {
+    "id": "7886dad8-c16d-44aa-9205-7da5dada3f8d",
+    "name": "MADHYA MILAN",
+    "description": "Central India Cultural Association",
+    "createdAt": "2026-07-13T19:13:31.586Z"
+  },
+  {
+    "id": "89438da2-5003-45af-ba78-93331c804ebe",
+    "name": "MAGADH MITHILA CLUB",
+    "description": "Bihar and Jharkhand Cultural Club",
+    "createdAt": "2026-07-13T19:13:31.586Z"
+  },
+  {
+    "id": "b483c3fe-a96c-446d-9df7-526ecea4dc4c",
+    "name": "MALAYALAM LITERARY ASSOCIATION",
+    "description": "Malayalam Culture",
+    "createdAt": "2026-07-13T19:13:31.587Z"
+  },
+  {
+    "id": "5ea7a066-b52e-49c6-9b94-d07e4ddf7fbf",
+    "name": "MARATHI LITERARY ASSOCIATION",
+    "description": "Marathi Culture",
+    "createdAt": "2026-07-13T19:13:31.588Z"
+  },
+  {
+    "id": "a840569e-c140-4cfb-9784-2f34c35f412a",
+    "name": "MATHEMATICS CLUB",
+    "description": "Mathematical sciences",
+    "createdAt": "2026-07-13T19:13:31.589Z"
+  },
+  {
+    "id": "eb3ccba3-7ca4-409f-a1a1-de309e9022e0",
+    "name": "MHARO RAJASTHAN",
+    "description": "Rajasthani Culture",
+    "createdAt": "2026-07-13T19:13:31.591Z"
+  },
+  {
+    "id": "c3c2d6b9-c737-455a-a30a-a95e4ba58f9d",
+    "name": "MICROSOFT INNOVATION CLUB",
+    "description": "Microsoft Tech Stack",
+    "createdAt": "2026-07-13T19:13:31.592Z"
+  },
+  {
+    "id": "e2f682cd-d375-4730-843c-c1255c335eab",
+    "name": "MUSIC CLUB",
+    "description": "Cultural Performing Arts - Music",
+    "createdAt": "2026-07-13T19:13:31.593Z"
+  },
+  {
+    "id": "fa8ebcc9-77d7-4489-b5df-869bea61d7ae",
+    "name": "NAMAMI ASSAM",
+    "description": "Assamese Culture",
+    "createdAt": "2026-07-13T19:13:31.594Z"
+  },
+  {
+    "id": "22903865-8263-4b29-9f25-93146b9191af",
+    "name": "NATIONAL SERVICE SCHEME (NSS)",
+    "description": "Community Service",
+    "createdAt": "2026-07-13T19:13:31.595Z"
+  },
+  {
+    "id": "e18df007-bc26-419d-a3ba-c8f5d9d6112e",
+    "name": "NATURE LOVERS CLUB",
+    "description": "Eco-preservation and Wildlife",
+    "createdAt": "2026-07-13T19:13:31.596Z"
+  },
+  {
+    "id": "d4c7e209-0f93-40b3-a1ad-2c4ac8be3035",
+    "name": "NEWTON SCHOOL CODING CLUB",
+    "description": "Tech Prep and Hackathons",
+    "createdAt": "2026-07-13T19:13:31.598Z"
+  },
+  {
+    "id": "2e5dbaed-3dc4-4762-8e2b-37a7305fe8dd",
+    "name": "NEXUS",
+    "description": "Interdisciplinary Technical Projects",
+    "createdAt": "2026-07-13T19:13:31.599Z"
+  },
+  {
+    "id": "a0ef7fac-c040-45c9-9b81-62f359a0c995",
+    "name": "NUTRITION CLUB",
+    "description": "Dietary Health and Wellness",
+    "createdAt": "2026-07-13T19:13:31.600Z"
+  },
+  {
+    "id": "75a2fba2-66c9-4730-bc87-085d21bf7016",
+    "name": "ODIA LITERARY ASSOCIATION - KALINGA JYOTI",
+    "description": "Odisha Culture",
+    "createdAt": "2026-07-13T19:13:31.601Z"
+  },
+  {
+    "id": "893b9083-f393-42d3-b0d9-d2ba7ae5488b",
+    "name": "OPEN SOURCE PROGRAMMING CLUB",
+    "description": "Open Source development",
+    "createdAt": "2026-07-13T19:13:31.602Z"
+  },
+  {
+    "id": "7996875e-bcba-465b-970e-85b1135e2140",
+    "name": "OPTICAL SOCIETY OF AMERICA",
+    "description": "Optics and Lasers",
+    "createdAt": "2026-07-13T19:13:31.603Z"
+  },
+  {
+    "id": "6124c73d-8f43-423a-b333-45e43af8fb7b",
+    "name": "PLACEXP",
+    "description": "Placement and Career Guidance",
+    "createdAt": "2026-07-13T19:13:31.604Z"
+  },
+  {
+    "id": "3d8d88a8-9571-4410-b2af-1512831352b3",
+    "name": "POP CULTURE CLUB",
+    "description": "Pop Culture Appreciation",
+    "createdAt": "2026-07-13T19:13:31.605Z"
+  },
+  {
+    "id": "65b97e8c-7196-4e4f-b334-019c5ff57b18",
+    "name": "PRODINNO",
+    "description": "Design Thinking and Product Innovation",
+    "createdAt": "2026-07-13T19:13:31.607Z"
+  },
+  {
+    "id": "85d9fe28-a41a-456f-b595-4fc8989da56d",
+    "name": "QUIZ CLUB",
+    "description": "Trivia and Quizzing",
+    "createdAt": "2026-07-13T19:13:31.608Z"
+  },
+  {
+    "id": "de24b513-c2a5-49f8-8cc4-605e1785a972",
+    "name": "RED RIBBON CLUB",
+    "description": "Health and Social Awareness",
+    "createdAt": "2026-07-13T19:13:31.610Z"
+  },
+  {
+    "id": "72212ae0-b1d6-42fa-af07-f747aefca59f",
+    "name": "RESOURCEXP",
+    "description": "Academic and Project Resources",
+    "createdAt": "2026-07-13T19:13:31.611Z"
+  },
+  {
+    "id": "5316e47c-ad14-4acf-ac17-6847a4e1b7a2",
+    "name": "ROBOTICS CLUB",
+    "description": "Robotic builds and microcontrollers",
+    "createdAt": "2026-07-13T19:13:31.612Z"
+  },
+  {
+    "id": "78128553-6f34-49bb-a51e-760e09a437e0",
+    "name": "ROTARACT CLUB",
+    "description": "Social service and Rotary network",
+    "createdAt": "2026-07-13T19:13:31.613Z"
+  },
+  {
+    "id": "9e60d5ff-a45d-41de-9bcc-801b95fc1aba",
+    "name": "SAE CLUB",
+    "description": "Automobile Engineering Design",
+    "createdAt": "2026-07-13T19:13:31.615Z"
+  },
+  {
+    "id": "c36414cc-3c82-4023-9b14-f998cf7d61e1",
+    "name": "SAHAYATHA",
+    "description": "Charitable Social Outreach",
+    "createdAt": "2026-07-13T19:13:31.616Z"
+  },
+  {
+    "id": "9e5994f3-5eed-4db1-9c51-a548c891839c",
+    "name": "SANGAM CLUB (UTTAR PRADESH)",
+    "description": "UP Cultural Association",
+    "createdAt": "2026-07-13T19:13:31.617Z"
+  },
+  {
+    "id": "b65bf6fc-705a-42f4-9df4-516cd90e20b7",
+    "name": "SEDS ANTARIKSH CHAPTER",
+    "description": "Space Exploration Chapter",
+    "createdAt": "2026-07-13T19:13:31.619Z"
+  },
+  {
+    "id": "f6ec634b-34be-4b1f-86c0-18010572f59d",
+    "name": "SERAPHIC",
+    "description": "Design and Aesthetics",
+    "createdAt": "2026-07-13T19:13:31.620Z"
+  },
+  {
+    "id": "fa864c78-336b-47c2-ae9d-075fc4b4d32f",
+    "name": "SHORT FILM CLUB",
+    "description": "Directing and screenwriting",
+    "createdAt": "2026-07-13T19:13:31.621Z"
+  },
+  {
+    "id": "3af0a6af-ecc9-4a7e-a0eb-41d8b3cbb8b6",
+    "name": "SOCIETY OF AUTOMOTIVE ENGINEERS (SAE)",
+    "description": "SAE Student Chapter",
+    "createdAt": "2026-07-13T19:13:31.622Z"
+  },
+  {
+    "id": "f00fb656-aa61-463f-9990-5af6c93ea0e1",
+    "name": "SOCRATES",
+    "description": "Philosophical Debates and Philosophy",
+    "createdAt": "2026-07-13T19:13:31.624Z"
+  },
+  {
+    "id": "0b86b3a0-5580-44bf-a06f-fc91d2a3391d",
+    "name": "SPIE STUDENT CHAPTER",
+    "description": "Photo-optical Instrumentation",
+    "createdAt": "2026-07-13T19:13:31.625Z"
+  },
+  {
+    "id": "59e9eb4d-0da9-479a-b248-5e068ece191c",
+    "name": "SPORTS CLUB",
+    "description": "Campus Athletics and Tournaments",
+    "createdAt": "2026-07-13T19:13:31.627Z"
+  },
+  {
+    "id": "1618ad17-9879-4ac4-8b37-1141a30c971a",
+    "name": "TECH RESEARCHERS CLUB (TRC)",
+    "description": "Research writing and journals",
+    "createdAt": "2026-07-13T19:13:31.628Z"
+  },
+  {
+    "id": "01b357ad-7d18-4c20-a92b-d03c93c791ee",
+    "name": "TEDX VIT CHENNAI",
+    "description": "Independent TED events",
+    "createdAt": "2026-07-13T19:13:31.629Z"
+  },
+  {
+    "id": "51ca9391-401f-44f7-b230-b64409e5ee35",
+    "name": "TELUGU LITERARY ASSOCIATION",
+    "description": "Telugu Culture",
+    "createdAt": "2026-07-13T19:13:31.631Z"
+  },
+  {
+    "id": "739eb89c-a0dd-47f0-80cd-01428606f19d",
+    "name": "THE CAPSULE - VIT NEWSLETTER CLUB",
+    "description": "Campus journalism and newsletter",
+    "createdAt": "2026-07-13T19:13:31.632Z"
+  },
+  {
+    "id": "3f4374f2-1df9-424d-960a-d114cb03032b",
+    "name": "THE COMEDY CLUB",
+    "description": "Stand-up comedy and humor",
+    "createdAt": "2026-07-13T19:13:31.633Z"
+  },
+  {
+    "id": "de30fcb9-e8ad-494c-beb5-706d0255c904",
+    "name": "THE HACK CLUB",
+    "description": "Development and Programming",
+    "createdAt": "2026-07-13T19:13:31.635Z"
+  },
+  {
+    "id": "95b416a9-a4c1-425d-bc61-e82325573b50",
+    "name": "THE INDIAN SOCIETY OF HEATING, REFRIGERATING AND AIR CONDITIONING ENGINEERS (ISHRAE)",
+    "description": "HVAC Engineering",
+    "createdAt": "2026-07-13T19:13:31.635Z"
+  },
+  {
+    "id": "5de3dd05-cf26-43f0-82f3-c0805c5da514",
+    "name": "THE PHOTOGRAPHY CLUB",
+    "description": "Visual arts and photography",
+    "createdAt": "2026-07-13T19:13:31.637Z"
+  },
+  {
+    "id": "4ec956d1-16db-4578-8d22-1fd7662453d7",
+    "name": "THE WHITE HELMETS",
+    "description": "First Aid and Disaster Management",
+    "createdAt": "2026-07-13T19:13:31.638Z"
+  },
+  {
+    "id": "976c13fc-71f7-42f9-860a-6edbb1adb24f",
+    "name": "TOASTMASTERS INTERNATIONAL",
+    "description": "Public speaking chapter",
+    "createdAt": "2026-07-13T19:13:31.639Z"
+  },
+  {
+    "id": "9b57826c-28ce-4ce1-a40d-69e6666f3435",
+    "name": "TREKKING CLUB",
+    "description": "Outdoors and Mountaineering",
+    "createdAt": "2026-07-13T19:13:31.640Z"
+  },
+  {
+    "id": "08a302eb-ce74-4e4c-b6cf-5002dd6fa9e8",
+    "name": "UDDESHYA",
+    "description": "Social welfare and literacy projects",
+    "createdAt": "2026-07-13T19:13:31.642Z"
+  },
+  {
+    "id": "1229021f-7e4d-437a-b174-a0c704759758",
+    "name": "VIRTUAL REALITY CLUB",
+    "description": "AR/VR/MR Technologies",
+    "createdAt": "2026-07-13T19:13:31.643Z"
+  },
+  {
+    "id": "bac64d73-5bb8-40c3-a8c4-2326cf6de686",
+    "name": "VIT FINANCE AND MANAGEMENT CLUB",
+    "description": "Wealth management and finance",
+    "createdAt": "2026-07-13T19:13:31.644Z"
+  },
+  {
+    "id": "9d2cde65-2aa0-49b5-8939-257838a0f74b",
+    "name": "VITC DEBATE SOCIETY",
+    "description": "VITC Debate Society",
+    "createdAt": "2026-07-13T19:13:31.645Z"
+  },
+  {
+    "id": "cf635da3-5f83-4ce2-be69-5e412332b0d8",
+    "name": "VITC FILM SOCIETY",
+    "description": "VITC Film Society",
+    "createdAt": "2026-07-13T19:13:31.647Z"
+  },
+  {
+    "id": "fecdb09d-f01a-4916-b065-7aba003f8ec0",
+    "name": "VITEACH",
+    "description": "Educational community outreach",
+    "createdAt": "2026-07-13T19:13:31.648Z"
+  },
+  {
+    "id": "7875dbcf-14c4-4ab8-bb90-fc82ba0526d7",
+    "name": "VITFAM",
+    "description": "Student community integration",
+    "createdAt": "2026-07-13T19:13:31.649Z"
+  },
+  {
+    "id": "28b11005-106a-4ed5-92b4-8938d26878ce",
+    "name": "VITSION FILM MAKERS CLUB",
+    "description": "Script and video execution",
+    "createdAt": "2026-07-13T19:13:31.651Z"
+  },
+  {
+    "id": "44c0d70b-4932-46b1-bba6-77cfba458b20",
+    "name": "VITSOL DEBATE SOCIETY",
+    "description": "Law School Debating",
+    "createdAt": "2026-07-13T19:13:31.652Z"
+  },
+  {
+    "id": "b7c39966-633e-4eb4-98a7-d64c1b218e10",
+    "name": "VOICE-IT VIT CHENNAI'S RADIO",
+    "description": "VIT Chennai Podcast and Radio",
+    "createdAt": "2026-07-13T19:13:31.653Z"
+  },
+  {
+    "id": "21542e84-33e7-4d16-af59-bd0804f81935",
+    "name": "WAKHRA PUNJAB",
+    "description": "Punjabi Cultural Club",
+    "createdAt": "2026-07-13T19:13:31.654Z"
+  },
+  {
+    "id": "c76dc5d6-cc33-4c6d-ab67-fbb4f9d32730",
+    "name": "WOMAN DEVELOPMENT CELL",
+    "description": "Gender equality initiatives",
+    "createdAt": "2026-07-13T19:13:31.655Z"
+  },
+  {
+    "id": "448d9385-e521-42c9-8284-bd19c75b7921",
+    "name": "YOGA CLUB",
+    "description": "Physical and mental wellness",
+    "createdAt": "2026-07-13T19:13:31.657Z"
+  },
+  {
+    "id": "49105a84-2c19-497c-b97e-3d8089e274c0",
+    "name": "YOUTH RED CROSS (YRC)",
+    "description": "Red Cross Youth Chapter",
+    "createdAt": "2026-07-13T19:13:31.658Z"
+  },
+  {
+    "id": "7ec6437e-407a-431a-8f4d-eb5319ed41cf",
+    "name": "YUVA",
+    "description": "Social and Youth Leadership",
+    "createdAt": "2026-07-13T19:13:31.659Z"
+  },
+  {
+    "id": "64e078c6-c386-41c1-a0f3-cecbbe4d33e9",
+    "name": "ZERO BUGS CLUB",
+    "description": "Debugging and clean code",
+    "createdAt": "2026-07-13T19:13:31.660Z"
+  }
+]

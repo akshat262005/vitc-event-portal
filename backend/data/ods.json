@@ -1,0 +1,74 @@
+[
+  {
+    "id": "91f44ef7-8940-4978-9df7-8934fce9048d",
+    "eventId": "7e91eff0-c3b8-480b-aca2-a3bc431d3beb",
+    "clubId": "44ad0ee6-9312-47a0-a4e0-22845f2e2c9a",
+    "clubName": "IEEE Test Chapter 1783969572683",
+    "eventName": "Integration Testing Workshop 1783969572683",
+    "eventDate": "2026-07-14",
+    "timeSlot": "FN",
+    "students": [
+      {
+        "registrationNumber": "21BCE0001",
+        "studentName": "Aditya",
+        "department": "CSE",
+        "year": 3
+      },
+      {
+        "registrationNumber": "21BCE0002",
+        "studentName": "Priya",
+        "department": "CSE",
+        "year": 3
+      }
+    ],
+    "uploadedAt": "2026-07-13T19:06:12.972Z"
+  },
+  {
+    "id": "7975f6f2-8d4f-487b-b9e2-d2e2f77c3076",
+    "eventId": "13cd80f4-221e-4496-ba03-00ca485dae31",
+    "clubId": "961af68e-dd4e-4441-b2a5-cf650990b6f2",
+    "clubName": "CODECHEF - VIT CHENNAI",
+    "eventName": "CodeFlix",
+    "eventDate": "2026-07-08",
+    "timeSlot": "Individual Slot",
+    "students": [
+      {
+        "registrationNumber": "24BCS1038",
+        "studentName": "A",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "25BAI1396",
+        "studentName": "B",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "24BCS1033",
+        "studentName": "C",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "25BCS1051",
+        "studentName": "D",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "23MIA1003",
+        "studentName": "E",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "23BEC1042",
+        "studentName": "F",
+        "date": "2026-08-15",
+        "time": "09:00 AM - 12:00 PM"
+      }
+    ],
+    "uploadedAt": "2026-07-13T19:54:40.464Z"
+  }
+]
