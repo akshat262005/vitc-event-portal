@@ -69,6 +69,62 @@
         "time": "09:00 AM - 12:00 PM"
       }
     ],
-    "uploadedAt": "2026-07-13T19:54:40.464Z"
+    "uploadedAt": "2026-07-13T19:54:40.464Z",
+    "remarks": "21MTI1005 - record is already exists for the selected date/time.\n22BAI1059 - record is already exists for the selected date/time.\n22BCE1169 - record is already exists for the selected date/time.\n22BEC1313 - record is already exists for the selected date/time.\n22BEC1405 - record is already exists for the selected date/time.\n22MIA1057 - record is already exists for the selected From Date or To Date or Date between these two dates for Full Day.\n22MIA1168 - record is already exists for the selected date/time.\n23BAI1379 - record is already exists for the selected date/time.\n23BCE5033 - record is already exists for the selected date/time.\n"
+  },
+  {
+    "id": "3e0313ee-1e08-4c25-9640-1a18fc72408f",
+    "eventId": "40ba6ab8-69d7-47c3-a367-fc9c2e839a54",
+    "clubId": "961af68e-dd4e-4441-b2a5-cf650990b6f2",
+    "clubName": "CODECHEF - VIT CHENNAI",
+    "eventName": "Git Event",
+    "eventDate": "2026-07-10",
+    "timeSlot": "Individual Slot",
+    "students": [
+      {
+        "registrationNumber": "24BCS1038",
+        "studentName": "A",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "25BAI1396",
+        "studentName": "B",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "24BCS1033",
+        "studentName": "C",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "25BCS1051",
+        "studentName": "D",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "23MIA1003",
+        "studentName": "E",
+        "date": "2026-08-16",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "23BEC1042",
+        "studentName": "F",
+        "date": "2026-08-15",
+        "time": "09:00 AM - 12:00 PM"
+      },
+      {
+        "registrationNumber": "23MIA1008",
+        "studentName": "G",
+        "date": "2026-08-15",
+        "time": "09:00 AM - 12:00 PM"
+      }
+    ],
+    "uploadedAt": "2026-07-14T17:49:45.024Z",
+    "remarks": "23BEE1180 - record is already exists for the selected date/time.\n23BEL1038 - record is already exists for the selected date/time.\n23BMV1055 - record is already exists for the selected date/time.\n23MIA1019 - record is already exists for the selected date/time.\n23MIS1094 - record is already exists for the selected date/time.\n24BAI1037 OD count Exceeding More than 40.posted OD:38Current OD count:3\n24BCE1289 OD count Exceeding More than 40.posted OD:38Current OD count:4\n"
   }
 ]

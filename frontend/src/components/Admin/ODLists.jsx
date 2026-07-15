@@ -12,7 +12,9 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  Users
+  Users,
+  AlertTriangle,
+  MessageSquare
 } from 'lucide-react';
 
 const ODLists = () => {
@@ -21,6 +23,7 @@ const ODLists = () => {
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState(null);
+  const [editingRemarks, setEditingRemarks] = useState({});
 
   // Search / Filters / Sort states
   const [search, setSearch] = useState('');
@@ -37,6 +40,13 @@ const ODLists = () => {
         ]);
         setOds(odsRes.data);
         setClubs(clubsRes.data);
+
+        // Populate remarks dictionary
+        const dict = {};
+        odsRes.data.forEach(od => {
+          dict[od.id || od._id] = od.remarks || '';
+        });
+        setEditingRemarks(dict);
       } catch (err) {
         console.error('Failed to load OD lists data:', err);
         showToast('Error loading OD lists.', 'error');
@@ -46,6 +56,24 @@ const ODLists = () => {
     };
     fetchData();
   }, []);
+
+  const handleSaveRemarks = async (odId) => {
+    try {
+      const text = editingRemarks[odId] || '';
+      await api.put(`/ods/${odId}/remarks`, { remarks: text });
+      showToast('Remarks saved and chairperson notified successfully!', 'success');
+      
+      setOds(prev => prev.map(o => {
+        if ((o.id || o._id) === odId) {
+          return { ...o, remarks: text };
+        }
+        return o;
+      }));
+    } catch (err) {
+      console.error('Error saving remarks:', err);
+      showToast('Failed to save remarks.', 'error');
+    }
+  };
 
   const handleDownloadODExcel = async (odItem) => {
     try {
@@ -239,44 +267,80 @@ const ODLists = () => {
                           </td>
                         </tr>
 
-                        {/* Expandable row showing student table */}
+                        {/* Expandable row showing student table & admin remarks */}
                         {expandedRow === (od.id || od._id) && (
                           <tr>
-                            <td colSpan="5" className="px-8 py-4 bg-vit-neutral-50 dark:bg-vit-neutral-900 border-b border-vit-neutral-200/50 dark:border-vit-neutral-700/50 text-xs">
-                              <div className="space-y-3">
-                                <p className="flex items-center gap-1 font-bold text-[10px] uppercase text-vit-blue">
-                                  <Users className="w-3.5 h-3.5" />
-                                  <span>Academic OD Beneficiaries Ledger ({od.students.length})</span>
-                                </p>
-                                <div className="border border-vit-neutral-200 dark:border-vit-neutral-750 rounded-xl overflow-hidden max-h-60 overflow-y-auto shadow-inner bg-white dark:bg-vit-neutral-950">
-                                  <table className="w-full text-left border-collapse">
-                                    <thead>
-                                      <tr className="bg-vit-neutral-100/50 dark:bg-vit-neutral-900 text-vit-neutral-500 font-bold uppercase border-b border-vit-neutral-200 dark:border-vit-neutral-700">
-                                        <th className="px-4 py-2">Reg Number</th>
-                                        <th className="px-4 py-2">Student Name</th>
-                                        <th className="px-4 py-2">Date</th>
-                                        <th className="px-4 py-2">Time</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-vit-neutral-200 dark:divide-vit-neutral-700">
-                                      {od.students.map((student, sIdx) => (
-                                        <tr key={sIdx} className="hover:bg-vit-neutral-50 dark:hover:bg-vit-neutral-900 transition-colors">
-                                          <td className="px-4 py-2 font-bold uppercase text-vit-navy dark:text-white">
-                                            {student.registrationNumber}
-                                          </td>
-                                          <td className="px-4 py-2 text-vit-neutral-600 dark:text-vit-neutral-350">
-                                            {student.studentName}
-                                          </td>
-                                          <td className="px-4 py-2 text-vit-neutral-600 dark:text-vit-neutral-350">
-                                            {student.date}
-                                          </td>
-                                          <td className="px-4 py-2 text-vit-neutral-600 dark:text-vit-neutral-350 font-medium">
-                                            {student.time}
-                                          </td>
+                            <td colSpan="5" className="px-8 py-5 bg-vit-neutral-50 dark:bg-vit-neutral-900 border-b border-vit-neutral-200/50 dark:border-vit-neutral-700/50 text-xs">
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Left Side: Ledger */}
+                                <div className="lg:col-span-2 space-y-3">
+                                  <p className="flex items-center gap-1 font-bold text-[10px] uppercase text-vit-blue">
+                                    <Users className="w-3.5 h-3.5" />
+                                    <span>Academic OD Beneficiaries Ledger ({od.students.length})</span>
+                                  </p>
+                                  <div className="border border-vit-neutral-200 dark:border-vit-neutral-750 rounded-xl overflow-hidden max-h-64 overflow-y-auto shadow-inner bg-white dark:bg-vit-neutral-950">
+                                    <table className="w-full text-left border-collapse">
+                                      <thead>
+                                        <tr className="bg-vit-neutral-100/50 dark:bg-vit-neutral-900 text-vit-neutral-500 font-bold uppercase border-b border-vit-neutral-200 dark:border-vit-neutral-700">
+                                          <th className="px-4 py-2">Reg Number</th>
+                                          <th className="px-4 py-2">Student Name</th>
+                                          <th className="px-4 py-2">Date</th>
+                                          <th className="px-4 py-2">Time</th>
                                         </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                      </thead>
+                                      <tbody className="divide-y divide-vit-neutral-200 dark:divide-vit-neutral-700">
+                                        {od.students.map((student, sIdx) => (
+                                          <tr key={sIdx} className="hover:bg-vit-neutral-50 dark:hover:bg-vit-neutral-900 transition-colors">
+                                            <td className="px-4 py-2 font-bold uppercase text-vit-navy dark:text-white">
+                                              {student.registrationNumber}
+                                            </td>
+                                            <td className="px-4 py-2 text-vit-neutral-600 dark:text-vit-neutral-350">
+                                              {student.studentName}
+                                            </td>
+                                            <td className="px-4 py-2 text-vit-neutral-600 dark:text-vit-neutral-350">
+                                              {student.date}
+                                            </td>
+                                            <td className="px-4 py-2 text-vit-neutral-600 dark:text-vit-neutral-350 font-medium">
+                                              {student.time}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+
+                                {/* Right Side: Admin Remarks Loop */}
+                                <div className="space-y-3 bg-white dark:bg-vit-neutral-950 p-4 border border-vit-neutral-200 dark:border-vit-neutral-750 rounded-2xl shadow-sm flex flex-col justify-between">
+                                  <div className="space-y-2">
+                                    <p className="flex items-center gap-1 font-bold text-[10px] uppercase text-amber-600 dark:text-amber-400">
+                                      <AlertTriangle className="w-3.5 h-3.5" />
+                                      <span>Official Portal Remarks & Errors Log</span>
+                                    </p>
+                                    <p className="text-[10px] text-vit-neutral-500 leading-normal">
+                                      If duplicate registrations, date mismatches, or count excesses occur on the official university portal, paste them below. The club coordinator will see this feedback in real-time.
+                                    </p>
+                                    <textarea
+                                      value={editingRemarks[od.id || od._id] || ''}
+                                      onChange={(e) => {
+                                        const text = e.target.value;
+                                        setEditingRemarks(prev => ({
+                                          ...prev,
+                                          [od.id || od._id]: text
+                                        }));
+                                      }}
+                                      placeholder="e.g.&#10;23MIA1019 - record is already exists for the selected date/time.&#10;24BAI1037 - OD count Exceeding More than 40."
+                                      rows="5"
+                                      className="w-full p-3 text-xs bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-1 focus:ring-amber-500 font-mono text-vit-neutral-800 dark:text-white placeholder-vit-neutral-400 dark:placeholder-vit-neutral-500 leading-relaxed"
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => handleSaveRemarks(od.id || od._id)}
+                                    className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-sm shadow-amber-550/10"
+                                  >
+                                    <MessageSquare className="w-3.5 h-3.5" />
+                                    <span>Sync Remarks with Club Portal</span>
+                                  </button>
                                 </div>
                               </div>
                             </td>

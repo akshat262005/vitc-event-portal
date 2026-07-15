@@ -90,5 +90,74 @@
     "message": "OD list for \"CodeFlix\" uploaded successfully.",
     "isRead": true,
     "createdAt": "2026-07-13T19:54:40.472Z"
+  },
+  {
+    "id": "7b3a7aea-67e7-404b-b6b1-dcfef67a09c8",
+    "recipientRole": "Admin",
+    "title": "New Report Submitted",
+    "message": "Club \"CODECHEF - VIT CHENNAI\" submitted a report for \"Git Set Go\" conducted on 2026-07-02.",
+    "isRead": false,
+    "createdAt": "2026-07-14T15:25:25.064Z"
+  },
+  {
+    "id": "a1b2292d-564e-4c93-ae33-e4b3e215896b",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "Report Submitted Successfully",
+    "message": "Your report for \"Git Set Go\" has been submitted successfully.",
+    "isRead": false,
+    "createdAt": "2026-07-14T15:25:25.069Z"
+  },
+  {
+    "id": "caa3594c-6989-42f8-a8dc-a9f8a73c90f7",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "Admin Remarks Added to OD List",
+    "message": "Admin added remarks/issues to resolve for \"CodeFlix\" OD list: \"21MTI1005 - record is already exists for the selected date/time.\n22BAI1059 - rec...\"",
+    "isRead": false,
+    "createdAt": "2026-07-14T15:52:08.649Z"
+  },
+  {
+    "id": "52aa271f-faa4-4d20-9e29-77a4a08820b2",
+    "recipientRole": "Admin",
+    "title": "New Report Submitted",
+    "message": "Club \"CODECHEF - VIT CHENNAI\" submitted a report for \"Git Event\" conducted on 2026-07-10.",
+    "isRead": false,
+    "createdAt": "2026-07-14T17:48:19.928Z"
+  },
+  {
+    "id": "e43227c5-055a-42fd-8543-6fc32cc550a9",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "Report Submitted Successfully",
+    "message": "Your report for \"Git Event\" has been submitted successfully.",
+    "isRead": false,
+    "createdAt": "2026-07-14T17:48:19.932Z"
+  },
+  {
+    "id": "76e64390-0b7f-4f03-9f35-bd94c42427a0",
+    "recipientRole": "Admin",
+    "title": "New OD Uploaded",
+    "message": "Club \"CODECHEF - VIT CHENNAI\" uploaded OD list for \"Git Event\" (7 students).",
+    "isRead": false,
+    "createdAt": "2026-07-14T17:49:45.029Z"
+  },
+  {
+    "id": "ba7a5154-61de-4444-997e-77d26e620b69",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "OD Uploaded Successfully",
+    "message": "OD list for \"Git Event\" uploaded successfully.",
+    "isRead": false,
+    "createdAt": "2026-07-14T17:49:45.032Z"
+  },
+  {
+    "id": "b7885786-3673-4596-923a-0f71f5aa2e42",
+    "recipientRole": "Chairperson",
+    "recipientId": "65418bcf-c667-4edb-b2c9-bc7848b9fab3",
+    "title": "Admin Remarks Added to OD List",
+    "message": "Admin added remarks/issues to resolve for \"Git Event\" OD list: \"23BEE1180 - record is already exists for the selected date/time.\n23BEL1038 - rec...\"",
+    "isRead": false,
+    "createdAt": "2026-07-14T17:52:16.844Z"
   }
 ]

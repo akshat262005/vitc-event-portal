@@ -79,11 +79,13 @@ if (isMongo) {
     categoryOthersSpecify: String,
     reportFilePath: { type: String, required: true },
     numberOfParticipants: { type: Number, required: true },
-    facultyCoordinator: { type: String, required: true },
+    facultyCoordinator: String,
     studentCoordinator: { type: String, required: true },
-    description: { type: String, required: true },
+    studentCoordinatorReg: { type: String, required: true },
+    studentCoordinatorContact: { type: String, required: true },
+    description: String,
     outcome: { type: String, required: true },
-    budgetUsed: { type: Number, required: true },
+    budgetUsed: Number,
     photos: [String],
     status: { type: String, default: 'Submitted Successfully' },
     hasOD: { type: Boolean, default: false },
@@ -105,6 +107,7 @@ if (isMongo) {
       date: { type: String, required: true },
       time: { type: String, required: true }
     }],
+    remarks: { type: String, default: '' },
     uploadedAt: { type: Date, default: Date.now }
   });
   MongooseOD = mongoose.model('ODList', ODListSchema);

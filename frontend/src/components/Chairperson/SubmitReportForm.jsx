@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../Common/Loader';
-import { UploadCloud, Image as ImageIcon, Trash2, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Link as LinkIcon } from 'lucide-react';
 
 const SubmitReportForm = () => {
   const { user, showToast } = useAuth();
@@ -24,16 +24,11 @@ const SubmitReportForm = () => {
   const [category, setCategory] = useState('');
   const [categoryOthersSpecify, setCategoryOthersSpecify] = useState('');
   const [numberOfParticipants, setNumberOfParticipants] = useState('');
-  const [facultyCoordinator, setFacultyCoordinator] = useState('');
   const [studentCoordinator, setStudentCoordinator] = useState('');
-  const [description, setDescription] = useState('');
+  const [studentCoordinatorReg, setStudentCoordinatorReg] = useState('');
+  const [studentCoordinatorContact, setStudentCoordinatorContact] = useState('');
   const [outcome, setOutcome] = useState('');
-  const [budgetUsed, setBudgetUsed] = useState('');
-
-  // File states
-  const [reportFile, setReportFile] = useState(null);
-  const [photoFiles, setPhotoFiles] = useState([]);
-  const [photoPreviews, setPhotoPreviews] = useState([]);
+  const [reportFilePath, setReportFilePath] = useState(''); // Stores Google Drive / document URL link
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -64,88 +59,34 @@ const SubmitReportForm = () => {
     }
   };
 
-  const handleReportChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Check size (20 MB = 20 * 1024 * 1024 bytes)
-    if (file.size > 20 * 1024 * 1024) {
-      showToast('Report file size must be less than 20MB.', 'error');
-      return;
-    }
-
-    // Check extension
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (ext !== 'pdf' && ext !== 'docx' && ext !== 'doc') {
-      showToast('Only PDF and DOCX file types are allowed.', 'error');
-      return;
-    }
-
-    setReportFile(file);
-  };
-
-  const handlePhotosChange = (e) => {
-    const files = Array.from(e.target.files);
-    
-    // Validate each file is an image
-    const validFiles = [];
-    const newPreviews = [];
-    
-    for (let file of files) {
-      if (!file.type.startsWith('image/')) {
-        showToast(`File "${file.name}" is not a valid image.`, 'error');
-        continue;
-      }
-      validFiles.push(file);
-      newPreviews.push(URL.createObjectURL(file));
-    }
-
-    setPhotoFiles(prev => [...prev, ...validFiles]);
-    setPhotoPreviews(prev => [...prev, ...newPreviews]);
-  };
-
-  const handleRemovePhoto = (index) => {
-    setPhotoFiles(prev => prev.filter((_, i) => i !== index));
-    setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!reportFile) {
-      showToast('Please attach the Event Report file.', 'error');
+    if (!reportFilePath.trim()) {
+      showToast('Please submit the Drive/Docx report link.', 'error');
       return;
     }
 
     setSubmitting(true);
-    const formData = new FormData();
-    formData.append('clubId', clubId);
-    formData.append('clubName', clubName);
-    formData.append('eventName', eventName);
-    formData.append('eventDate', eventDate);
-    formData.append('eventEndDate', eventEndDate);
-    formData.append('eventTime', eventTime);
-    formData.append('venue', venue);
-    formData.append('category', category);
-    if (category === 'Others') {
-      formData.append('categoryOthersSpecify', categoryOthersSpecify);
-    }
-    formData.append('numberOfParticipants', numberOfParticipants);
-    formData.append('facultyCoordinator', facultyCoordinator);
-    formData.append('studentCoordinator', studentCoordinator);
-    formData.append('description', description);
-    formData.append('outcome', outcome);
-    formData.append('budgetUsed', budgetUsed);
-    formData.append('report', reportFile);
-    photoFiles.forEach(file => {
-      formData.append('photos', file);
-    });
+    const payload = {
+      clubId,
+      clubName,
+      eventName,
+      eventDate,
+      eventEndDate,
+      eventTime,
+      venue,
+      category,
+      categoryOthersSpecify: category === 'Others' ? categoryOthersSpecify : '',
+      numberOfParticipants: parseInt(numberOfParticipants, 10),
+      studentCoordinator: studentCoordinator.trim(),
+      studentCoordinatorReg: studentCoordinatorReg.trim().toUpperCase(),
+      studentCoordinatorContact: studentCoordinatorContact.trim(),
+      outcome: outcome.trim(),
+      reportFilePath: reportFilePath.trim() // Stores Drive link
+    };
 
     try {
-      await api.post('/reports', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      await api.post('/reports', payload);
       showToast('Event report submitted successfully!', 'success');
       navigate('/dashboard');
     } catch (err) {
@@ -199,7 +140,7 @@ const SubmitReportForm = () => {
               <select
                 value={clubId}
                 onChange={handleClubChange}
-                disabled={user && user.role === 'Chairperson'} // Locked to assigned club for Chairperson
+                disabled={user && user.role === 'Chairperson'}
                 className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium disabled:opacity-75 disabled:cursor-not-allowed"
                 required
               >
@@ -318,13 +259,13 @@ const SubmitReportForm = () => {
           </div>
         </div>
 
-        {/* SECTION 2: Coordinators and Participants */}
+        {/* SECTION 2: Participant & Student Coordinator details */}
         <div className="glass-panel p-6 space-y-6">
           <h3 className="text-base font-bold text-vit-navy dark:text-white border-b border-vit-neutral-200 dark:border-vit-neutral-700 pb-2">
-            2. Attendance & Staff Details
+            2. Attendance and Student Coordinator details
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
                 Number of Participants
@@ -342,50 +283,13 @@ const SubmitReportForm = () => {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Faculty Coordinator
-              </label>
-              <input
-                type="text"
-                value={facultyCoordinator}
-                onChange={(e) => setFacultyCoordinator(e.target.value)}
-                placeholder="e.g. Dr. A. Ramanathan"
-                className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Student Coordinator
+                Student Coordinator Name
               </label>
               <input
                 type="text"
                 value={studentCoordinator}
                 onChange={(e) => setStudentCoordinator(e.target.value)}
-                placeholder="e.g. Rajesh Nair (21BCE0104)"
-                className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 3: Content Narratives */}
-        <div className="glass-panel p-6 space-y-6">
-          <h3 className="text-base font-bold text-vit-navy dark:text-white border-b border-vit-neutral-200 dark:border-vit-neutral-700 pb-2">
-            3. Narrative & Financials
-          </h3>
-
-          <div className="space-y-6">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Event Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows="4"
-                placeholder="Detail the activities, lectures, or schedules conducted during the event..."
+                placeholder="e.g. Rajesh Nair"
                 className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
                 required
               />
@@ -393,28 +297,27 @@ const SubmitReportForm = () => {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Event Outcome
-              </label>
-              <textarea
-                value={outcome}
-                onChange={(e) => setOutcome(e.target.value)}
-                rows="3"
-                placeholder="Explain the results, learning targets reached, and key achievements..."
-                className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Budget Used (INR)
+                Student Coordinator Registration Number
               </label>
               <input
-                type="number"
-                value={budgetUsed}
-                onChange={(e) => setBudgetUsed(e.target.value)}
-                placeholder="e.g. 5000"
-                min="0"
+                type="text"
+                value={studentCoordinatorReg}
+                onChange={(e) => setStudentCoordinatorReg(e.target.value)}
+                placeholder="e.g. 23MIA1110"
+                className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium uppercase"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
+                Student Coordinator Contact Number
+              </label>
+              <input
+                type="tel"
+                value={studentCoordinatorContact}
+                onChange={(e) => setStudentCoordinatorContact(e.target.value)}
+                placeholder="e.g. +91 98765 43210"
                 className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
                 required
               />
@@ -422,75 +325,54 @@ const SubmitReportForm = () => {
           </div>
         </div>
 
-        {/* SECTION 4: File Uploads */}
+        {/* SECTION 3: Outcome Only */}
         <div className="glass-panel p-6 space-y-6">
           <h3 className="text-base font-bold text-vit-navy dark:text-white border-b border-vit-neutral-200 dark:border-vit-neutral-700 pb-2">
-            4. Report Files & Media Uploads
+            3. Narrative
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* PDF/DOCX Report File Upload */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400">
-                Official Report Document (PDF / DOCX • Max 20MB)
-              </label>
-              <div className="relative border-2 border-dashed border-vit-neutral-300 dark:border-vit-neutral-700 hover:border-vit-blue rounded-2xl p-6 flex flex-col items-center justify-center transition-colors bg-vit-neutral-50 dark:bg-vit-neutral-900/50">
-                <UploadCloud className="w-8 h-8 text-vit-neutral-400 dark:text-vit-neutral-500 mb-3" />
-                <p className="text-xs font-semibold text-vit-neutral-600 dark:text-vit-neutral-400 mb-1">
-                  {reportFile ? reportFile.name : 'Select or drag & drop report file'}
-                </p>
-                <p className="text-[10px] text-vit-neutral-400">PDF, DOC, DOCX up to 20MB</p>
-                <input
-                  type="file"
-                  onChange={handleReportChange}
-                  accept=".pdf,.docx,.doc"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Photo Uploads */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400">
-                Event Photos (Multiple Uploads)
-              </label>
-              <div className="relative border-2 border-dashed border-vit-neutral-300 dark:border-vit-neutral-700 hover:border-vit-blue rounded-2xl p-6 flex flex-col items-center justify-center transition-colors bg-vit-neutral-50 dark:bg-vit-neutral-900/50">
-                <ImageIcon className="w-8 h-8 text-vit-neutral-400 dark:text-vit-neutral-500 mb-3" />
-                <p className="text-xs font-semibold text-vit-neutral-600 dark:text-vit-neutral-400 mb-1">
-                  Click to select photos
-                </p>
-                <p className="text-[10px] text-vit-neutral-400">PNG, JPG, JPEG formats</p>
-                <input
-                  type="file"
-                  multiple
-                  onChange={handlePhotosChange}
-                  accept="image/*"
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
+              Event Outcome
+            </label>
+            <textarea
+              value={outcome}
+              onChange={(e) => setOutcome(e.target.value)}
+              rows="4"
+              placeholder="Explain the results, learning targets reached, and key achievements..."
+              className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
+              required
+            />
           </div>
+        </div>
 
-          {/* Photo Previews grid */}
-          {photoPreviews.length > 0 && (
-            <div className="space-y-2">
-              <span className="block text-xs font-bold uppercase text-vit-neutral-500">Selected Photos Preview ({photoFiles.length})</span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {photoPreviews.map((preview, index) => (
-                  <div key={index} className="relative w-full h-24 rounded-xl border overflow-hidden bg-vit-neutral-100 group shadow-sm">
-                    <img src={preview} alt={`preview ${index}`} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePhoto(index)}
-                      className="absolute top-1.5 right-1.5 bg-red-600 hover:bg-red-750 text-white p-1 rounded-lg opacity-80 hover:opacity-100 transition-opacity focus:outline-none"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+        {/* SECTION 4: Drive Document Link */}
+        <div className="glass-panel p-6 space-y-6">
+          <h3 className="text-base font-bold text-vit-navy dark:text-white border-b border-vit-neutral-200 dark:border-vit-neutral-700 pb-2">
+            4. Report file upload
+          </h3>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400">
+              Official Report Document (Submit Google Drive / OneDrive / Docx Link)
+            </label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-vit-neutral-400">
+                <LinkIcon className="w-4 h-4" />
+              </span>
+              <input
+                type="url"
+                value={reportFilePath}
+                onChange={(e) => setReportFilePath(e.target.value)}
+                placeholder="e.g. https://drive.google.com/file/d/..."
+                className="w-full pl-10 pr-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-semibold text-vit-neutral-800 dark:text-white"
+                required
+              />
             </div>
-          )}
+            <p className="text-[10px] text-vit-neutral-450 dark:text-vit-neutral-500 mt-1">
+              Please make sure the link access settings allow anybody with the link to view the file.
+            </p>
+          </div>
         </div>
 
         {/* Submit Actions */}

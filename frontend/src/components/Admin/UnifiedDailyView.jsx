@@ -58,8 +58,12 @@ const UnifiedDailyView = () => {
 
   const handleDownloadReport = (filePath) => {
     if (!filePath) return;
-    const url = `${api.defaults.baseURL.replace('/api', '')}${filePath}`;
-    window.open(url, '_blank');
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      window.open(filePath, '_blank');
+    } else {
+      const url = `${api.defaults.baseURL.replace('/api', '')}${filePath}`;
+      window.open(url, '_blank');
+    }
   };
 
   const handleDownloadODExcel = async (odItem) => {
@@ -179,10 +183,10 @@ const UnifiedDailyView = () => {
                       <p><strong>Venue:</strong> {report.venue}</p>
                       <p><strong>Time:</strong> {report.eventTime}</p>
                       <p className="col-span-2"><strong>Duration:</strong> {report.eventEndDate && report.eventEndDate !== report.eventDate ? `${report.eventDate} to ${report.eventEndDate}` : report.eventDate}</p>
-                      <p><strong>Attendance:</strong> {report.numberOfParticipants} students</p>
-                      <p><strong>Budget:</strong> INR {report.budgetUsed}</p>
-                      <p className="col-span-2"><strong>Faculty Coord:</strong> {report.facultyCoordinator}</p>
-                      <p className="col-span-2"><strong>Student Coord:</strong> {report.studentCoordinator}</p>
+                      <p className="col-span-2"><strong>Attendance:</strong> {report.numberOfParticipants} students</p>
+                      <p className="col-span-2"><strong>Student Coordinator:</strong> {report.studentCoordinator} {report.studentCoordinatorReg ? `(${report.studentCoordinatorReg})` : ''}</p>
+                      {report.studentCoordinatorContact && <p className="col-span-2"><strong>Coordinator Contact:</strong> {report.studentCoordinatorContact}</p>}
+                      <p className="col-span-2"><strong>Event Outcome:</strong> {report.outcome}</p>
                     </div>
 
                     <div className="flex gap-2 justify-end pt-2 border-t border-vit-neutral-100 dark:border-vit-neutral-700/60">

@@ -71,7 +71,7 @@ const uploadMiddleware = (req, res, next) => {
 };
 
 // POST /api/reports - Chairperson submits an Event Report
-router.post('/', verifyToken, uploadMiddleware, async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     // If chairperson, verify they belong to a club
     const isChairperson = req.user.role === 'Chairperson';
@@ -101,27 +101,19 @@ router.post('/', verifyToken, uploadMiddleware, async (req, res) => {
       category,
       categoryOthersSpecify,
       numberOfParticipants,
-      facultyCoordinator,
       studentCoordinator,
-      description,
+      studentCoordinatorReg,
+      studentCoordinatorContact,
       outcome,
+      reportFilePath, // Stores the drive/docx link from user
+      facultyCoordinator,
+      description,
       budgetUsed
     } = req.body;
 
-    if (!eventName || !eventDate || !eventEndDate || !eventTime || !venue || !category || !numberOfParticipants || !facultyCoordinator || !studentCoordinator || !description || !outcome || !budgetUsed) {
+    if (!eventName || !eventDate || !eventEndDate || !eventTime || !venue || !category || !numberOfParticipants || !studentCoordinator || !studentCoordinatorReg || !studentCoordinatorContact || !outcome || !reportFilePath) {
       return res.status(400).json({ message: 'Please fill in all required fields.' });
     }
-
-    // Verify files
-    if (!req.files || !req.files['report'] || req.files['report'].length === 0) {
-      return res.status(400).json({ message: 'Event report file (PDF/DOCX) is required.' });
-    }
-
-    const reportFile = req.files['report'][0];
-    const reportFilePath = `/uploads/${reportFile.filename}`;
-
-    const photoFiles = req.files['photos'] || [];
-    const photos = photoFiles.map(file => `/uploads/${file.filename}`);
 
     const newReport = await db.reports.create({
       clubId,
@@ -133,14 +125,16 @@ router.post('/', verifyToken, uploadMiddleware, async (req, res) => {
       venue,
       category,
       categoryOthersSpecify: category === 'Others' ? categoryOthersSpecify : '',
-      reportFilePath,
+      reportFilePath, // Drive/document link
       numberOfParticipants: parseInt(numberOfParticipants, 10),
-      facultyCoordinator,
+      facultyCoordinator: facultyCoordinator || '',
       studentCoordinator,
-      description,
+      studentCoordinatorReg,
+      studentCoordinatorContact,
+      description: description || '',
       outcome,
-      budgetUsed: parseFloat(budgetUsed),
-      photos,
+      budgetUsed: budgetUsed ? parseFloat(budgetUsed) : 0,
+      photos: [],
       status: 'Submitted Successfully',
       hasOD: false,
       submittedBy: req.user.id

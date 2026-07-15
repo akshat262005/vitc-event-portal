@@ -129,22 +129,32 @@ router.get('/daily-bundle', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=VITC_Daily_Bundle_${date}.zip`);
     archive.pipe(res);
 
-    // 1. Add Report PDF/DOCX files to the ZIP
+    // 1. Add Report PDF/DOCX files or collect drive links in the ZIP
+    const driveLinks = [];
     reports.forEach(report => {
       if (report.reportFilePath) {
-        // Resolve absolute filepath
-        const relativePath = report.reportFilePath.replace(/^\/uploads\//, '');
-        const absolutePath = path.join(__dirname, '../uploads', relativePath);
-        
-        if (fs.existsSync(absolutePath)) {
-          const extension = path.extname(absolutePath);
-          const sanitizedClub = report.clubName.replace(/[^a-z0-9]/gi, '_');
-          const sanitizedEvent = report.eventName.replace(/[^a-z0-9]/gi, '_');
-          const fileNameInZip = `Reports/${sanitizedClub}_${sanitizedEvent}${extension}`;
-          archive.file(absolutePath, { name: fileNameInZip });
+        if (report.reportFilePath.startsWith('http://') || report.reportFilePath.startsWith('https://')) {
+          driveLinks.push(`Club: ${report.clubName}\nEvent: ${report.eventName}\nDuration: ${report.eventDate} to ${report.eventEndDate}\nLink: ${report.reportFilePath}\n\n`);
+        } else {
+          // Resolve absolute filepath
+          const relativePath = report.reportFilePath.replace(/^\/uploads\//, '');
+          const absolutePath = path.join(__dirname, '../uploads', relativePath);
+          
+          if (fs.existsSync(absolutePath)) {
+            const extension = path.extname(absolutePath);
+            const sanitizedClub = report.clubName.replace(/[^a-z0-9]/gi, '_');
+            const sanitizedEvent = report.eventName.replace(/[^a-z0-9]/gi, '_');
+            const fileNameInZip = `Reports/${sanitizedClub}_${sanitizedEvent}${extension}`;
+            archive.file(absolutePath, { name: fileNameInZip });
+          }
         }
       }
     });
+
+    if (driveLinks.length > 0) {
+      const linksContent = `VIT CHENNAI EVENT REPORTS - GOOGLE DRIVE/DOCUMENT LINKS\nDate: ${date}\n============================================================\n\n` + driveLinks.join('');
+      archive.append(linksContent, { name: `Consolidated_Report_Drive_Links_${date}.txt` });
+    }
 
     // 2. Generate a single Consolidated Excel workbook for all OD lists on this date
     if (ods.length > 0) {

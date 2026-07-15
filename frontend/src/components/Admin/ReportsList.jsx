@@ -13,6 +13,7 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  Clock,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -51,8 +52,12 @@ const ReportsList = () => {
 
   const handleDownloadReport = (filePath) => {
     if (!filePath) return;
-    const url = `${api.defaults.baseURL.replace('/api', '')}${filePath}`;
-    window.open(url, '_blank');
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      window.open(filePath, '_blank');
+    } else {
+      const url = `${api.defaults.baseURL.replace('/api', '')}${filePath}`;
+      window.open(url, '_blank');
+    }
   };
 
   const toggleExpandRow = (id) => {
@@ -276,39 +281,18 @@ const ReportsList = () => {
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {/* Details column */}
                                 <div className="space-y-2">
-                                  <p className="text-vit-blue font-bold uppercase tracking-wider text-[10px]">Coordinators & Settings</p>
+                                  <p className="text-vit-blue font-bold uppercase tracking-wider text-[10px]">Staff & Coordinator Details</p>
                                   <p><strong>Venue:</strong> {report.venue}</p>
-                                  <p><strong>Faculty Coordinator:</strong> {report.facultyCoordinator}</p>
                                   <p><strong>Student Coordinator:</strong> {report.studentCoordinator}</p>
+                                  {report.studentCoordinatorReg && <p><strong>Reg Number:</strong> {report.studentCoordinatorReg}</p>}
+                                  {report.studentCoordinatorContact && <p><strong>Contact:</strong> {report.studentCoordinatorContact}</p>}
                                   <p><strong>Number of Participants:</strong> {report.numberOfParticipants} Students</p>
-                                  <p><strong>Budget Incurred:</strong> INR {report.budgetUsed}</p>
                                 </div>
 
                                 {/* Narrative column */}
                                 <div className="space-y-2 col-span-2">
-                                  <p className="text-vit-blue font-bold uppercase tracking-wider text-[10px]">Narrative Outcomes</p>
-                                  <p><strong>Description:</strong> {report.description}</p>
-                                  <p><strong>Outcome:</strong> {report.outcome}</p>
-                                  
-                                  {/* Photos grid */}
-                                  {report.photos && report.photos.length > 0 && (
-                                    <div className="pt-2">
-                                      <p className="flex items-center gap-1 font-bold text-[10px] uppercase text-vit-neutral-500 mb-2">
-                                        <ImageIcon className="w-3.5 h-3.5" />
-                                        <span>Uploaded Event Photos ({report.photos.length})</span>
-                                      </p>
-                                      <div className="flex flex-wrap gap-2">
-                                        {report.photos.map((photo, pIdx) => {
-                                          const photoUrl = `${api.defaults.baseURL.replace('/api', '')}${photo}`;
-                                          return (
-                                            <a key={pIdx} href={photoUrl} target="_blank" rel="noreferrer" className="w-16 h-16 rounded-lg overflow-hidden border border-vit-neutral-200 hover:scale-105 transition-transform block">
-                                              <img src={photoUrl} alt="event capture" className="w-full h-full object-cover" />
-                                            </a>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
+                                  <p className="text-vit-blue font-bold uppercase tracking-wider text-[10px]">Event Outcome</p>
+                                  <p className="text-vit-neutral-700 dark:text-vit-neutral-300 leading-relaxed whitespace-pre-wrap">{report.outcome}</p>
                                 </div>
                               </div>
                             </td>

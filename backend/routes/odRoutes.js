@@ -291,4 +291,37 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
+// PUT /api/ods/:id/remarks - Update Admin remarks on an OD list (Admin only)
+router.put('/:id/remarks', verifyToken, async (req, res) => {
+  if (req.user.role !== 'Admin') {
+    return res.status(403).json({ message: 'Access denied. Admin only.' });
+  }
+
+  const { remarks } = req.body;
+  try {
+    const odList = await db.ods.findById(req.params.id);
+    if (!odList) {
+      return res.status(404).json({ message: 'OD list not found.' });
+    }
+
+    const updatedOD = await db.ods.findByIdAndUpdate(req.params.id, { remarks: remarks || '' }, { new: true });
+
+    // Create notifications for Chairperson of the club
+    const chairpersons = await db.users.find({ role: 'Chairperson', clubId: odList.clubId });
+    for (const cp of chairpersons) {
+      await db.notifications.create({
+        recipientRole: 'Chairperson',
+        recipientId: cp.id || cp._id,
+        title: 'Admin Remarks Added to OD List',
+        message: `Admin added remarks/issues to resolve for "${odList.eventName}" OD list: "${(remarks || '').substring(0, 80)}..."`
+      });
+    }
+
+    res.json({ message: 'Remarks updated successfully.', odList: updatedOD });
+  } catch (error) {
+    console.error('Update remarks error:', error);
+    res.status(500).json({ message: 'Server error updating remarks.' });
+  }
+});
+
 module.exports = router;

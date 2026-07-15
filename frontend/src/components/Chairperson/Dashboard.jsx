@@ -20,22 +20,32 @@ const ChairpersonDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [reports, setReports] = useState([]);
+  const [ods, setOds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedRemarksRow, setExpandedRemarksRow] = useState(null);
 
-  const fetchReports = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const response = await api.get('/reports');
-      setReports(response.data);
+      const [reportsRes, odsRes] = await Promise.all([
+        api.get('/reports'),
+        api.get('/ods')
+      ]);
+      setReports(reportsRes.data);
+      setOds(odsRes.data);
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchReports();
+    fetchDashboardData();
   }, []);
+
+  const toggleRemarksRow = (id) => {
+    setExpandedRemarksRow(expandedRemarksRow === id ? null : id);
+  };
 
   if (loading) {
     return (
@@ -56,8 +66,12 @@ const ChairpersonDashboard = () => {
 
   const handleDownloadReport = (filePath, eventName) => {
     if (!filePath) return;
-    const url = `${api.defaults.baseURL.replace('/api', '')}${filePath}`;
-    window.open(url, '_blank');
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      window.open(filePath, '_blank');
+    } else {
+      const url = `${api.defaults.baseURL.replace('/api', '')}${filePath}`;
+      window.open(url, '_blank');
+    }
   };
 
   const handleDownloadODExcel = async (eventId, eventName) => {
@@ -202,81 +216,117 @@ const ChairpersonDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-vit-neutral-200 dark:divide-vit-neutral-700 text-sm">
-                {reports.map((report) => (
-                  <tr key={report.id || report._id} className="hover:bg-vit-neutral-100/30 dark:hover:bg-vit-neutral-800/30 transition-colors">
-                    <td className="px-6 py-4 font-semibold text-vit-navy dark:text-white truncate max-w-[200px]">
-                      {report.eventName}
-                    </td>
-                    <td className="px-6 py-4 text-vit-neutral-600 dark:text-vit-neutral-400 whitespace-nowrap">
-                      {report.eventEndDate && report.eventEndDate !== report.eventDate 
-                        ? `${report.eventDate} to ${report.eventEndDate}` 
-                        : report.eventDate}
-                    </td>
-                    <td className="px-6 py-4 text-vit-neutral-600 dark:text-vit-neutral-400">
-                      {report.category}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Submitted
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleDownloadReport(report.reportFilePath, report.eventName)}
-                        className="inline-flex items-center justify-center p-1.5 text-vit-blue hover:bg-vit-sky/40 dark:text-sky-400 dark:hover:bg-vit-blue/20 rounded-lg transition-colors cursor-pointer"
-                        title="View Report File"
-                      >
-                        <FileText className="w-4.5 h-4.5" />
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {report.hasOD ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                          ✓ Uploaded
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => navigate('/ods/new', { state: { selectedEventId: report.id || report._id } })}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-500 hover:text-amber-800 dark:hover:text-amber-400 underline cursor-pointer"
-                        >
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          <span>Upload OD</span>
-                        </button>
+                {reports.map((report) => {
+                  const linkedOD = ods.find(o => o.eventId === report.id || (o.eventId && o.eventId._id === report.id) || o.eventId === report._id);
+                  return (
+                    <React.Fragment key={report.id || report._id}>
+                      <tr className="hover:bg-vit-neutral-100/30 dark:hover:bg-vit-neutral-800/30 transition-colors">
+                        <td className="px-6 py-4 font-semibold text-vit-navy dark:text-white truncate max-w-[200px]">
+                          {report.eventName}
+                        </td>
+                        <td className="px-6 py-4 text-vit-neutral-600 dark:text-vit-neutral-400 whitespace-nowrap">
+                          {report.eventEndDate && report.eventEndDate !== report.eventDate 
+                            ? `${report.eventDate} to ${report.eventEndDate}` 
+                            : report.eventDate}
+                        </td>
+                        <td className="px-6 py-4 text-vit-neutral-600 dark:text-vit-neutral-400">
+                          {report.category}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Submitted
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => handleDownloadReport(report.reportFilePath, report.eventName)}
+                            className="inline-flex items-center justify-center p-1.5 text-vit-blue hover:bg-vit-sky/40 dark:text-sky-400 dark:hover:bg-vit-blue/20 rounded-lg transition-colors cursor-pointer"
+                            title="View Report File"
+                          >
+                            <FileText className="w-4.5 h-4.5" />
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {report.hasOD ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                ✓ Uploaded
+                              </span>
+                              {linkedOD && linkedOD.remarks && (
+                                <button
+                                  onClick={() => toggleRemarksRow(report.id || report._id)}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-red-50 hover:bg-red-100 dark:bg-red-950/20 text-red-650 dark:text-red-400 font-bold border border-red-200 dark:border-red-900/45 cursor-pointer animate-pulse"
+                                >
+                                  <AlertCircle className="w-3 h-3" />
+                                  <span>Issues found</span>
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => navigate('/ods/new', { state: { selectedEventId: report.id || report._id } })}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-500 hover:text-amber-800 dark:hover:text-amber-400 underline cursor-pointer"
+                            >
+                              <AlertCircle className="w-3.5 h-3.5" />
+                              <span>Upload OD</span>
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleDownloadReport(report.reportFilePath, report.eventName)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-vit-neutral-100 dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-lg hover:bg-vit-neutral-200 dark:hover:bg-vit-neutral-700 transition-colors cursor-pointer"
+                            title="Download Report PDF"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Report</span>
+                          </button>
+                          
+                          {report.hasOD ? (
+                            <button
+                              onClick={() => handleDownloadODExcel(report.id || report._id, report.eventName)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900 text-xs font-semibold rounded-lg text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition-colors cursor-pointer"
+                              title="Download Student OD Excel"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5" />
+                              <span>OD List</span>
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 text-xs font-semibold rounded-lg text-vit-neutral-400 cursor-not-allowed"
+                              title="OD List Locked"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5" />
+                              <span>Locked</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+
+                      {/* Collapsible Admin Remarks drawer */}
+                      {expandedRemarksRow === (report.id || report._id) && linkedOD && linkedOD.remarks && (
+                        <tr>
+                          <td colSpan="7" className="px-8 py-4 bg-red-50/20 dark:bg-red-950/5 border-b border-red-200/50 dark:border-red-900/30 text-xs">
+                            <div className="flex gap-3 p-4 bg-red-50/70 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/40 rounded-xl text-red-800 dark:text-red-300">
+                              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-650 dark:text-red-400 mt-0.5" />
+                              <div className="space-y-1 w-full">
+                                <h4 className="font-bold text-sm text-red-900 dark:text-red-200">Administrative Remarks & Action Items</h4>
+                                <p className="text-xs text-vit-neutral-500 dark:text-vit-neutral-400 leading-normal">
+                                  The administrator logged the following errors when validating this student OD list on the official portal. Please review these entries:
+                                </p>
+                                <pre className="mt-3 p-3 bg-white dark:bg-vit-neutral-900 border border-red-150 dark:border-red-950 rounded-lg font-mono text-xs whitespace-pre-wrap leading-relaxed text-red-750 dark:text-red-400 shadow-inner">
+                                  {linkedOD.remarks}
+                                </pre>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <button
-                        onClick={() => handleDownloadReport(report.reportFilePath, report.eventName)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-vit-neutral-100 dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-lg hover:bg-vit-neutral-200 dark:hover:bg-vit-neutral-700 transition-colors cursor-pointer"
-                        title="Download Report PDF"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Report</span>
-                      </button>
-                      
-                      {report.hasOD ? (
-                        <button
-                          onClick={() => handleDownloadODExcel(report.id || report._id, report.eventName)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900 text-xs font-semibold rounded-lg text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 transition-colors cursor-pointer"
-                          title="Download Student OD Excel"
-                        >
-                          <FileSpreadsheet className="w-3.5 h-3.5" />
-                          <span>OD List</span>
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 text-xs font-semibold rounded-lg text-vit-neutral-400 cursor-not-allowed"
-                          title="OD List Locked"
-                        >
-                          <FileSpreadsheet className="w-3.5 h-3.5" />
-                          <span>Locked</span>
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
