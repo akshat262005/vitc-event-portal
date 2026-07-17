@@ -16,7 +16,8 @@ import {
   Sun,
   Moon,
   Menu,
-  X
+  X,
+  Database
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -52,12 +53,15 @@ const Sidebar = () => {
     { to: '/admin/daily-view', label: 'Unified Daily View', icon: CalendarDays },
     { to: '/admin/clubs', label: 'Manage Clubs', icon: Compass },
     { to: '/admin/chairpersons', label: 'Manage Chairpersons', icon: Users },
+    { to: '/admin/pre-events', label: 'Pre-Event Operations', icon: CalendarDays },
     { to: '/admin/reports', label: 'Event Reports', icon: FileCheck },
-    { to: '/admin/ods', label: 'OD Lists', icon: FileSpreadsheet }
+    { to: '/admin/ods', label: 'OD Lists', icon: FileSpreadsheet },
+    { to: '/admin/od-registry', label: 'OD Registry', icon: Database }
   ];
 
   const chairpersonLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/pre-events/new', label: 'Pre-Event Operations', icon: CalendarDays },
     { to: '/reports/new', label: 'Submit Event Report', icon: PlusCircle },
     { to: '/ods/new', label: 'Upload OD List', icon: Upload }
   ];
@@ -97,7 +101,7 @@ const Sidebar = () => {
       </nav>
 
       {/* User Information & Theme Toggle Footer */}
-      <div className="p-4 border-t border-white/10 bg-vit-navy/95 space-y-3">
+      <div className="p-4 border-t border-white/10 bg-vit-navy/95 space-y-3 relative">
         <div className="flex items-center justify-between px-2">
           {/* Theme Switcher */}
           <button

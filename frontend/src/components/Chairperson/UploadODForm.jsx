@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../Common/Loader';
@@ -19,6 +19,9 @@ const UploadODForm = () => {
   const { showToast } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
+  const isEditMode = !!id;
+  const isResubmitMode = location.state?.resubmitMode || false;
 
   // State
   const [unlockedEvents, setUnlockedEvents] = useState([]);
@@ -27,9 +30,12 @@ const UploadODForm = () => {
   const [parsingExcel, setParsingExcel] = useState(false);
 
   // Form Fields
+  const [requestType, setRequestType] = useState('post_event'); // 'pre_event' or 'post_event'
   const [selectedEventId, setSelectedEventId] = useState('');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [students, setStudents] = useState([]);
+
+  const odAttempts = selectedEvent ? (3 - (selectedEvent.odUploadsCount || 0)) : 3;
 
   // Manual input fields
   const [regNo, setRegNo] = useState('');
@@ -37,15 +43,21 @@ const UploadODForm = () => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
 
-  // Fetch submitted reports that do not have ODs uploaded yet
+  // Fetch submitted reports/pre-events that do not have ODs uploaded yet
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoadingEvents(true);
       try {
-        const response = await api.get('/ods/unlocked-events');
+        const endpoint = requestType === 'pre_event' ? '/ods/unlocked-pre-events' : '/ods/unlocked-events';
+        const response = await api.get(endpoint);
         setUnlockedEvents(response.data);
-
+  
         // Pre-select event if navigated from the dashboard row link
         const navEventId = location.state?.selectedEventId;
+        const navRequestType = location.state?.requestType;
+        if (navRequestType) {
+          setRequestType(navRequestType);
+        }
         if (navEventId) {
           setSelectedEventId(navEventId);
           const found = response.data.find(e => (e.id || e._id) === navEventId);
@@ -57,8 +69,44 @@ const UploadODForm = () => {
         setLoadingEvents(false);
       }
     };
-    fetchEvents();
-  }, [location]);
+
+    const fetchODForEdit = async () => {
+      try {
+        const response = await api.get(`/ods/${id}`);
+        const od = response.data;
+        const evId = od.eventId?._id || od.eventId;
+        setSelectedEventId(evId);
+        setRequestType(od.requestType || 'post_event');
+        
+        // Fetch details to get uploads count
+        try {
+          const detailEndpoint = (od.requestType === 'pre_event') ? `/pre-events/${evId}` : `/reports/${evId}`;
+          const repRes = await api.get(detailEndpoint);
+          setSelectedEvent(repRes.data);
+        } catch (repErr) {
+          setSelectedEvent(od.eventId && typeof od.eventId === 'object' ? od.eventId : {
+            _id: evId,
+            eventName: od.eventName || 'Loading...',
+            eventDate: od.eventDate || '',
+            venue: od.venue || ''
+          });
+        }
+        
+        setStudents(od.students || []);
+      } catch (err) {
+        console.error('Error loading OD list for edit:', err);
+        showToast('Failed to load OD details.', 'error');
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+  
+    if (isEditMode) {
+      fetchODForEdit();
+    } else {
+      fetchEvents();
+    }
+  }, [location, id, isEditMode, requestType]);
 
   // Update selected event details
   const handleEventChange = (e) => {
@@ -165,14 +213,31 @@ const UploadODForm = () => {
       return;
     }
 
+    if (odAttempts <= 0 && (isResubmitMode || !isEditMode)) {
+      showToast('Maximum uploads/edits reached (3/3). Submission blocked.', 'error');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await api.post('/ods', {
-        eventId: selectedEventId,
-        timeSlot: 'Individual Slot',
-        students
-      });
-      showToast('OD List uploaded and submitted successfully!', 'success');
+      if (isResubmitMode) {
+        await api.put(`/ods/${id}/resubmit`, {
+          students
+        });
+        showToast('Corrected OD list resubmitted successfully for verification!', 'success');
+      } else if (isEditMode) {
+        await api.put(`/ods/${id}`, {
+          students
+        });
+        showToast('OD List updated successfully!', 'success');
+      } else {
+        await api.post('/ods', {
+          eventId: selectedEventId,
+          requestType,
+          students
+        });
+        showToast('OD List uploaded and submitted successfully!', 'success');
+      }
       navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.message || 'Error submitting OD list.';
@@ -202,25 +267,64 @@ const UploadODForm = () => {
       </button>
 
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white">Upload On Duty (OD) Student Ledger</h2>
-        <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
-          Provide student details to grant academic On-Duty approval. This page is unlocked only for events with submitted reports.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white">
+            {isResubmitMode ? 'Resubmit Corrected OD List' : (isEditMode ? 'Edit On Duty (OD) Student Ledger' : 'Upload On Duty (OD) Student Ledger')}
+          </h2>
+          <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
+            {isResubmitMode ? 'Upload the revised Excel sheet containing corrected student details.' : (isEditMode ? 'Modify and update student details for academic On-Duty approval.' : 'Provide student details to grant academic On-Duty approval. This page is unlocked for events with submitted reports or pre-event requests.')}
+          </p>
+        </div>
+        {selectedEvent && (
+          <div className={`px-4 py-2 border rounded-xl font-bold text-xs flex flex-col items-center justify-center flex-shrink-0 bg-white dark:bg-vit-neutral-950 ${
+            odAttempts > 0 ? 'border-amber-250 text-amber-600 dark:border-amber-900/50 dark:text-amber-400' : 'border-red-200 text-red-500'
+          }`}>
+            <span>OD Upload Limit Status</span>
+            <span className="text-[10px] text-vit-neutral-500 dark:text-vit-neutral-400 font-medium">
+              {odAttempts > 0 ? `${odAttempts} upload attempt(s) remaining` : '0 attempts remaining (limit reached)'}
+            </span>
+          </div>
+        )}
       </div>
 
-      {unlockedEvents.length === 0 ? (
+      {/* Request Type Selector (Always Visible in upload mode) */}
+      {!isEditMode && (
+        <div className="glass-panel p-5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
+            OD Request Type
+          </label>
+          <select
+            value={requestType}
+            onChange={(e) => {
+              setRequestType(e.target.value);
+              setSelectedEventId('');
+              setSelectedEvent(null);
+            }}
+            className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
+          >
+            <option value="post_event">Post-Event Report</option>
+            <option value="pre_event">Pre-Event Operation</option>
+          </select>
+        </div>
+      )}
+
+      {unlockedEvents.length === 0 && !isEditMode ? (
         <div className="glass-panel p-12 text-center text-vit-neutral-500 space-y-4">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
-          <p className="font-semibold text-lg">No Event Reports Available for OD Upload</p>
+          <p className="font-semibold text-lg">
+            No Unlocked {requestType === 'pre_event' ? 'Pre-Event Operations' : 'Event Reports'} Available
+          </p>
           <p className="text-sm max-w-md mx-auto">
-            You must first submit an Event Report. Once the report is successfully registered, the On Duty submission workflow unlocks.
+            {requestType === 'pre_event'
+              ? 'You must first submit a Pre-Event Operation request. Once submitted, the OD upload workflow unlocks for that pre-event activity.'
+              : 'You must first submit a Post-Event Report. Once the report is successfully registered, the OD submission workflow unlocks.'}
           </p>
           <button
-            onClick={() => navigate('/reports/new')}
+            onClick={() => navigate(requestType === 'pre_event' ? '/pre-events/new' : '/reports/new')}
             className="px-5 py-2.5 bg-vit-navy text-white text-sm font-semibold rounded-xl hover:bg-vit-blue transition-colors cursor-pointer"
           >
-            Submit an Event Report
+            {requestType === 'pre_event' ? 'Submit Pre-Event Operation' : 'Submit Event Report'}
           </button>
         </div>
       ) : (
@@ -232,37 +336,79 @@ const UploadODForm = () => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {isEditMode && (
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
+                    OD Request Type
+                  </label>
+                  <select
+                    value={requestType}
+                    disabled
+                    className="w-full px-4 py-3 bg-vit-neutral-100 dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium disabled:opacity-75"
+                  >
+                    <option value="post_event">Post-Event Report</option>
+                    <option value="pre_event">Pre-Event Operation</option>
+                  </select>
+                </div>
+              )}
+
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                  Select Event
+                  {requestType === 'pre_event' ? 'Select Pre-Event Request' : 'Select Event'}
                 </label>
                 <select
                   value={selectedEventId}
                   onChange={handleEventChange}
-                  className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
+                  className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium disabled:opacity-50"
                   required
+                  disabled={isEditMode}
                 >
-                  <option value="">Select Event Report</option>
-                  {unlockedEvents.map(e => (
-                    <option key={e.id || e._id} value={e.id || e._id}>
-                      {e.eventName} ({e.eventDate})
+                  {isEditMode ? (
+                    <option value={selectedEventId}>
+                      {selectedEvent?.eventName || 'Loading...'}
                     </option>
-                  ))}
+                  ) : (
+                    <>
+                      <option value="">{requestType === 'pre_event' ? 'Select Pre-Event Operation Request' : 'Select Event Report'}</option>
+                      {unlockedEvents.map(e => (
+                        <option key={e.id || e._id} value={e.id || e._id}>
+                          {e.eventName} ({e.eventDate})
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
               </div>
 
               {selectedEvent && (
-                <div className="md:col-span-2 p-4 bg-vit-sky/30 dark:bg-vit-blue/10 border border-vit-blue/20 rounded-xl space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-vit-blue">Linked Event Details</span>
-                  <p className="text-sm font-semibold text-vit-navy dark:text-white">
-                    Event: <span className="font-normal">{selectedEvent.eventName}</span>
-                  </p>
-                  <p className="text-sm font-semibold text-vit-navy dark:text-white">
-                    Date: <span className="font-normal">{selectedEvent.eventDate}</span>
-                  </p>
-                  <p className="text-sm font-semibold text-vit-navy dark:text-white">
-                    Venue: <span className="font-normal">{selectedEvent.venue}</span>
-                  </p>
+                <div className="md:col-span-2 p-5 bg-vit-sky/30 dark:bg-vit-blue/10 border border-vit-blue/20 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2 pb-1 border-b border-vit-blue/10">
+                    <span className="text-[10px] uppercase font-bold text-vit-blue tracking-wider">Populated OD Request Details</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Club / Chapter Name</span>
+                    <span className="text-sm font-semibold text-vit-navy dark:text-white">{selectedEvent.clubName || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Event Name</span>
+                    <span className="text-sm font-semibold text-vit-navy dark:text-white">{selectedEvent.eventName || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Event Category</span>
+                    <span className="text-sm font-semibold text-vit-navy dark:text-white">
+                      {selectedEvent.eventCategoryOthersSpecify ? `${selectedEvent.eventCategory} (${selectedEvent.eventCategoryOthersSpecify})` : (selectedEvent.eventCategory || selectedEvent.category || 'N/A')}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Event Date</span>
+                    <span className="text-sm font-semibold text-vit-navy dark:text-white">{selectedEvent.eventDate || 'N/A'}</span>
+                  </div>
+                  {requestType === 'pre_event' && (
+                    <div>
+                      <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">OD Required Date</span>
+                      <span className="text-sm font-semibold text-vit-navy dark:text-white">{selectedEvent.odRequiredDate || 'N/A'}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -432,7 +578,7 @@ const UploadODForm = () => {
               disabled={submitting || students.length === 0}
               className="px-6 py-3 bg-gradient-to-r from-vit-navy to-vit-blue hover:from-vit-navy hover:to-vit-blue text-white rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Submitting OD Ledger...' : 'Submit OD List'}
+              {submitting ? 'Saving changes...' : (isResubmitMode ? 'Resubmit Corrected OD' : (isEditMode ? 'Save Changes' : 'Submit OD List'))}
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@ import Sidebar from './components/Common/Sidebar';
 import ChairpersonDashboard from './components/Chairperson/Dashboard';
 import SubmitReportForm from './components/Chairperson/SubmitReportForm';
 import UploadODForm from './components/Chairperson/UploadODForm';
+import PreEventForm from './components/Chairperson/PreEventForm';
 
 // Admin Pages
 import AdminDashboard from './components/Admin/Dashboard';
@@ -17,6 +18,8 @@ import ManageClubs from './components/Admin/ManageClubs';
 import ManageChairpersons from './components/Admin/ManageChairpersons';
 import ReportsList from './components/Admin/ReportsList';
 import ODLists from './components/Admin/ODLists';
+import MasterSheet from './components/Admin/MasterSheet';
+import AdminPreEventsList from './components/Admin/AdminPreEventsList';
 
 const PortalLayout = ({ children }) => (
   <div className="min-h-screen flex flex-col md:flex-row bg-vit-neutral-50 dark:bg-vit-neutral-900 transition-colors duration-200">
@@ -47,6 +50,16 @@ function App() {
             }
           />
           <Route
+            path="/pre-events/new"
+            element={
+              <RouteGuard allowedRoles={['Chairperson']}>
+                <PortalLayout>
+                  <PreEventForm />
+                </PortalLayout>
+              </RouteGuard>
+            }
+          />
+          <Route
             path="/reports/new"
             element={
               <RouteGuard allowedRoles={['Chairperson']}>
@@ -57,7 +70,27 @@ function App() {
             }
           />
           <Route
+            path="/reports/edit/:id"
+            element={
+              <RouteGuard allowedRoles={['Chairperson']}>
+                <PortalLayout>
+                  <SubmitReportForm />
+                </PortalLayout>
+              </RouteGuard>
+            }
+          />
+          <Route
             path="/ods/new"
+            element={
+              <RouteGuard allowedRoles={['Chairperson']}>
+                <PortalLayout>
+                  <UploadODForm />
+                </PortalLayout>
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/ods/edit/:id"
             element={
               <RouteGuard allowedRoles={['Chairperson']}>
                 <PortalLayout>
@@ -109,6 +142,16 @@ function App() {
             }
           />
           <Route
+            path="/admin/pre-events"
+            element={
+              <RouteGuard allowedRoles={['Admin']}>
+                <PortalLayout>
+                  <AdminPreEventsList />
+                </PortalLayout>
+              </RouteGuard>
+            }
+          />
+          <Route
             path="/admin/reports"
             element={
               <RouteGuard allowedRoles={['Admin']}>
@@ -124,6 +167,16 @@ function App() {
               <RouteGuard allowedRoles={['Admin']}>
                 <PortalLayout>
                   <ODLists />
+                </PortalLayout>
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/admin/od-registry"
+            element={
+              <RouteGuard allowedRoles={['Admin']}>
+                <PortalLayout>
+                  <MasterSheet />
                 </PortalLayout>
               </RouteGuard>
             }

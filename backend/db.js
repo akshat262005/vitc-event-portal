@@ -39,7 +39,7 @@ const writeJson = (collection, data) => {
 };
 
 // Define Mongoose Schemas if using MongoDB
-let MongooseUser, MongooseClub, MongooseReport, MongooseOD, MongooseNotification;
+let MongooseUser, MongooseClub, MongooseReport, MongooseOD, MongooseNotification, MongoosePreEventOperation;
 
 if (isMongo) {
   mongoose.connect(MONGO_URI)
@@ -81,7 +81,7 @@ if (isMongo) {
     numberOfParticipants: { type: Number, required: true },
     facultyCoordinator: String,
     studentCoordinator: { type: String, required: true },
-    studentCoordinatorReg: { type: String, required: true },
+    studentCoordinatorReg: String,
     studentCoordinatorContact: { type: String, required: true },
     description: String,
     outcome: { type: String, required: true },
@@ -89,7 +89,11 @@ if (isMongo) {
     photos: [String],
     status: { type: String, default: 'Submitted Successfully' },
     hasOD: { type: Boolean, default: false },
+    isCollaboration: { type: Boolean, default: false },
+    collaborationClubs: [String],
     submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    reportUploadsCount: { type: Number, default: 1 },
+    odUploadsCount: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
   });
   MongooseReport = mongoose.model('Report', ReportSchema);
@@ -100,12 +104,32 @@ if (isMongo) {
     clubName: { type: String, required: true },
     eventName: { type: String, required: true },
     eventDate: { type: String, required: true },
-    timeSlot: { type: String, required: true }, // FN, AN, Full Day
+    timeSlot: String, // Deprecated
     students: [{
       registrationNumber: { type: String, required: true },
       studentName: { type: String, required: true },
       date: { type: String, required: true },
       time: { type: String, required: true }
+    }],
+    verificationStatus: { type: String, enum: ['pending', 'fully_updated', 'partially_updated'], default: 'pending' },
+    requestType: { type: String, enum: ['pre_event', 'post_event'], default: 'post_event' },
+    totalStudents: { type: Number, required: true },
+    completedStudents: { type: Number, default: 0 },
+    remainingStudents: { type: Number, default: 0 },
+    adminRemarks: { type: String, default: '' },
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    verifiedAt: Date,
+    resubmissionCount: { type: Number, default: 0 },
+    currentVersion: { type: Number, default: 1 },
+    versions: [{
+      version: Number,
+      students: [{
+        registrationNumber: String,
+        studentName: String,
+        date: String,
+        time: String
+      }],
+      uploadedAt: { type: Date, default: Date.now }
     }],
     remarks: { type: String, default: '' },
     uploadedAt: { type: Date, default: Date.now }
@@ -121,6 +145,27 @@ if (isMongo) {
     createdAt: { type: Date, default: Date.now }
   });
   MongooseNotification = mongoose.model('Notification', NotificationSchema);
+
+  const PreEventOperationSchema = new mongoose.Schema({
+    clubId: { type: mongoose.Schema.Types.ObjectId, ref: 'Club', required: true },
+    clubName: { type: String, required: true },
+    eventName: { type: String, required: true },
+    eventDate: { type: String, required: true },
+    odRequiredDate: { type: String, required: true },
+    eventCategory: { type: String, required: true },
+    eventCategoryOthersSpecify: String,
+    facultyCoordinator: { type: String, required: true },
+    studentCoordinator: { type: String, required: true },
+    studentCoordinatorContact: { type: String, required: true },
+    purpose: { type: String, required: true },
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+    hasOD: { type: Boolean, default: false },
+    odUploadsCount: { type: Number, default: 0 },
+    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+  });
+  MongoosePreEventOperation = mongoose.model('PreEventOperation', PreEventOperationSchema);
 } else {
   console.log('Running backend with Local JSON Database.');
 }
@@ -506,6 +551,85 @@ const db = {
           writeJson('notifications', items);
         }
         return { success: true };
+      }
+    }
+  },
+
+  preEventOperations: {
+    find: async (filter = {}) => {
+      if (isMongo) {
+        return MongoosePreEventOperation.find(filter).lean();
+      } else {
+        const items = readJson('preEventOperations');
+        return items.filter(item => {
+          return Object.keys(filter).every(key => {
+            if (key === 'clubId' && filter[key]) return item.clubId === filter[key];
+            if (key === 'submittedBy' && filter[key]) return item.submittedBy === filter[key];
+            return item[key] === filter[key];
+          });
+        });
+      }
+    },
+    findOne: async (filter = {}) => {
+      if (isMongo) {
+        return MongoosePreEventOperation.findOne(filter).lean();
+      } else {
+        const items = readJson('preEventOperations');
+        return items.find(item => {
+          return Object.keys(filter).every(key => item[key] === filter[key]);
+        }) || null;
+      }
+    },
+    findById: async (id) => {
+      if (isMongo) {
+        return MongoosePreEventOperation.findById(id).lean();
+      } else {
+        const items = readJson('preEventOperations');
+        return items.find(item => item.id === id) || null;
+      }
+    },
+    create: async (data) => {
+      if (isMongo) {
+        const op = new MongoosePreEventOperation(data);
+        return (await op.save()).toObject();
+      } else {
+        const items = readJson('preEventOperations');
+        const newOp = {
+          id: uuidv4(),
+          ...data,
+          status: data.status || 'Pending',
+          hasOD: false,
+          odUploadsCount: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        items.push(newOp);
+        writeJson('preEventOperations', items);
+        return newOp;
+      }
+    },
+    findByIdAndUpdate: async (id, data) => {
+      if (isMongo) {
+        return MongoosePreEventOperation.findByIdAndUpdate(id, { ...data, updatedAt: new Date() }, { new: true }).lean();
+      } else {
+        const items = readJson('preEventOperations');
+        const index = items.findIndex(item => item.id === id);
+        if (index === -1) return null;
+        items[index] = { ...items[index], ...data, updatedAt: new Date().toISOString() };
+        writeJson('preEventOperations', items);
+        return items[index];
+      }
+    },
+    findByIdAndDelete: async (id) => {
+      if (isMongo) {
+        return MongoosePreEventOperation.findByIdAndDelete(id).lean();
+      } else {
+        const items = readJson('preEventOperations');
+        const index = items.findIndex(item => item.id === id);
+        if (index === -1) return null;
+        const deleted = items.splice(index, 1)[0];
+        writeJson('preEventOperations', items);
+        return deleted;
       }
     }
   }

@@ -31,6 +31,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const odRoutes = require('./routes/odRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const preEventRoutes = require('./routes/preEventRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -40,6 +41,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/ods', odRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/pre-events', preEventRoutes);
 
 // Simple Health Check Endpoint
 app.get('/api/health', (req, res) => {
