@@ -1,24 +1,33 @@
-# VIT Chennai Event Portal — Next.js (App Router) on Vercel
+# VIT Chennai Event Portal — Next.js (App Router)
 
 ## Quick start
 
-```bash
-npm install
-npm run dev
-```
+1. Create a `.env` file in the root directory:
+   ```env
+   MONGODB_URI=mongodb+srv://...
+   JWT_SECRET=your_jwt_signing_secret
+   ```
 
-Open [http://localhost:3000](http://localhost:3000).
+2. Run the application:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-Default admin (after first `/api/health` or login seed): `admin` / `admin123`
+3. Open [http://localhost:3000](http://localhost:3000).
+
+4. To seed default data (Admin account + 144 Clubs and Chapters), navigate to:
+   [http://localhost:3000/api/health](http://localhost:3000/api/health)
+
+   Default admin credentials seeded:
+   - **Username**: `admin`
+   - **Password**: `admin123`
 
 ## Production (Vercel)
 
 1. Set environment variables:
-   - `MONGODB_URI` — **required** on Vercel (JSON file DB is not durable on serverless)
+   - `MONGODB_URI` — **required** (e.g. MongoDB Atlas connection URI)
    - `JWT_SECRET` — strong secret
-2. Deploy the repo root (this Next.js app).
-3. Hit `/api/health` once to seed admin + clubs if the DB is empty.
+2. Deploy the repository root (the Next.js app).
+3. Hit `/api/health` once to seed the admin account and clubs if the database is empty.
 
-## Legacy folders
-
-`backend/` and `frontend/` are the previous Express + Vite apps, kept for reference. The deployable app lives at the repo root (`app/`, `lib/`, `components/`).
