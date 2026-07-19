@@ -17,7 +17,7 @@ export async function GET(request) {
         name: user.name,
         email: user.email,
         registrationNumber: user.registrationNumber,
-        clubId: user.clubId,
+        clubId: user.clubId?._id ? user.clubId._id.toString() : user.clubId,
         clubName: user.clubName,
         designation: user.designation,
         username: user.username,

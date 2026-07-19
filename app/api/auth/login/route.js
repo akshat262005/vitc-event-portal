@@ -25,7 +25,7 @@ export async function POST(request) {
         id: user.id || user._id,
         username: user.username,
         role: user.role,
-        clubId: user.clubId,
+        clubId: user.clubId?._id ? user.clubId._id.toString() : user.clubId,
       },
       JWT_SECRET,
       { expiresIn: '1d' }
@@ -38,7 +38,7 @@ export async function POST(request) {
         name: user.name,
         email: user.email,
         registrationNumber: user.registrationNumber,
-        clubId: user.clubId,
+        clubId: user.clubId?._id ? user.clubId._id.toString() : user.clubId,
         clubName: user.clubName,
         designation: user.designation,
         username: user.username,
