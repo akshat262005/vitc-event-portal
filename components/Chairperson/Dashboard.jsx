@@ -129,7 +129,10 @@ const ChairpersonDashboard = () => {
     try {
       // Find the OD ID linked to this event
       const odsResponse = await api.get('/ods');
-      const eventOD = odsResponse.data.find(o => o.eventId === eventId || (o.eventId && o.eventId._id === eventId));
+      const eventOD = odsResponse.data.find(o => {
+        const oEventId = o.eventId?._id ? o.eventId._id.toString() : o.eventId?.toString();
+        return oEventId === eventId;
+      });
       if (!eventOD) return;
 
       // Consolidate data to downloadable layout
@@ -298,7 +301,11 @@ const ChairpersonDashboard = () => {
               </thead>
               <tbody className="divide-y divide-vit-neutral-200 dark:divide-vit-neutral-700 text-sm">
                 {reports.map((report) => {
-                  const linkedOD = ods.find(o => o.eventId === report.id || (o.eventId && o.eventId._id === report.id) || o.eventId === report._id);
+                  const linkedOD = ods.find(o => {
+                    const oEventId = o.eventId?._id ? o.eventId._id.toString() : o.eventId?.toString();
+                    const rId = report.id || report._id?.toString();
+                    return oEventId && rId && oEventId === rId;
+                  });
                   return (
                     <React.Fragment key={report.id || report._id}>
                       <tr className="hover:bg-vit-neutral-100/30 dark:hover:bg-vit-neutral-800/30 transition-colors">
@@ -699,7 +706,10 @@ const ChairpersonDashboard = () => {
                       <td className="px-6 py-4 text-center">
                         {op.hasOD ? (
                           (() => {
-                            const linkedOD = ods.find(o => o.eventId === id || (o.eventId && o.eventId._id === id));
+                            const linkedOD = ods.find(o => {
+                              const oEventId = o.eventId?._id ? o.eventId._id.toString() : o.eventId?.toString();
+                              return oEventId && oEventId === id;
+                            });
                             if (linkedOD) {
                               return (
                                 <div className="flex flex-col items-center justify-center gap-1">
@@ -821,7 +831,10 @@ const ChairpersonDashboard = () => {
                 <span className="text-sm font-semibold text-vit-navy dark:text-white">
                   {selectedPreEvent.studentCoordinator} ({selectedPreEvent.studentCoordinatorContact})
                 </span>
-                          <div className="space-y-2">
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Purpose of Pre-Event Operations</span>
               <p className="text-sm text-vit-neutral-600 dark:text-vit-neutral-300 whitespace-pre-wrap leading-relaxed bg-vit-neutral-50 dark:bg-vit-neutral-950 p-4 border border-vit-neutral-200 dark:border-vit-neutral-800 rounded-xl font-medium">
                 {selectedPreEvent.purpose}
@@ -829,7 +842,11 @@ const ChairpersonDashboard = () => {
             </div>
 
             {(() => {
-              const linkedOD = ods.find(o => o.eventId === (selectedPreEvent.id || selectedPreEvent._id) || (o.eventId && o.eventId._id === (selectedPreEvent.id || selectedPreEvent._id)));
+              const linkedOD = ods.find(o => {
+                const oEventId = o.eventId?._id ? o.eventId._id.toString() : o.eventId?.toString();
+                const peId = selectedPreEvent.id || selectedPreEvent._id?.toString();
+                return oEventId && peId && oEventId === peId;
+              });
               if (linkedOD) {
                 const total = linkedOD.totalStudents || linkedOD.students?.length || 0;
                 const completed = linkedOD.completedStudents || 0;
