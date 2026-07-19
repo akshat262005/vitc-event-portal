@@ -698,9 +698,35 @@ const ChairpersonDashboard = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         {op.hasOD ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-105 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/40">
-                            Uploaded
-                          </span>
+                          (() => {
+                            const linkedOD = ods.find(o => o.eventId === id || (o.eventId && o.eventId._id === id));
+                            if (linkedOD) {
+                              return (
+                                <div className="flex flex-col items-center justify-center gap-1">
+                                  {linkedOD.verificationStatus === 'fully_updated' && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-200">
+                                      🟢 Fully Verified
+                                    </span>
+                                  )}
+                                  {linkedOD.verificationStatus === 'partially_updated' && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full font-bold border border-orange-200 animate-pulse">
+                                      🟠 Partially Verified
+                                    </span>
+                                  )}
+                                  {(linkedOD.verificationStatus === 'pending' || !linkedOD.verificationStatus) && (
+                                    <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2.5 py-1 rounded-full font-bold border border-yellow-200">
+                                      🟡 Pending Verification
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/40">
+                                Uploaded
+                              </span>
+                            );
+                          })()
                         ) : op.status === 'Approved' ? (
                           <button
                             onClick={() => router.push(`/ods/new?selectedEventId=${id}&requestType=pre_event`)}
@@ -795,15 +821,92 @@ const ChairpersonDashboard = () => {
                 <span className="text-sm font-semibold text-vit-navy dark:text-white">
                   {selectedPreEvent.studentCoordinator} ({selectedPreEvent.studentCoordinatorContact})
                 </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
+                          <div className="space-y-2">
               <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Purpose of Pre-Event Operations</span>
               <p className="text-sm text-vit-neutral-600 dark:text-vit-neutral-300 whitespace-pre-wrap leading-relaxed bg-vit-neutral-50 dark:bg-vit-neutral-950 p-4 border border-vit-neutral-200 dark:border-vit-neutral-800 rounded-xl font-medium">
                 {selectedPreEvent.purpose}
               </p>
             </div>
+
+            {(() => {
+              const linkedOD = ods.find(o => o.eventId === (selectedPreEvent.id || selectedPreEvent._id) || (o.eventId && o.eventId._id === (selectedPreEvent.id || selectedPreEvent._id)));
+              if (linkedOD) {
+                const total = linkedOD.totalStudents || linkedOD.students?.length || 0;
+                const completed = linkedOD.completedStudents || 0;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                return (
+                  <div className="border-t border-vit-neutral-200 dark:border-vit-neutral-850 pt-5 space-y-4">
+                    <h4 className="font-extrabold text-sm text-vit-navy dark:text-white uppercase tracking-wider">
+                      Academic OD Status & Verification Details
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-vit-neutral-50 dark:bg-vit-neutral-950 p-4 border border-vit-neutral-200 dark:border-vit-neutral-800 rounded-xl">
+                      {/* Progress / Status */}
+                      <div className="space-y-3">
+                        <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">OD Verification Status</span>
+                        <div className="space-y-1">
+                          <div className="text-xs font-bold">
+                            {linkedOD.verificationStatus === 'fully_updated' && '🟢 Fully Verified'}
+                            {linkedOD.verificationStatus === 'partially_updated' && '🟠 Partially Verified'}
+                            {(linkedOD.verificationStatus === 'pending' || !linkedOD.verificationStatus) && '🟡 Pending Verification'}
+                          </div>
+                          <div className="text-[11px] text-vit-neutral-500">
+                            {completed} / {total} Students verified
+                          </div>
+                          {/* Progress bar */}
+                          <div className="w-full bg-vit-neutral-200 dark:bg-vit-neutral-850 h-1.5 rounded-full overflow-hidden mt-1.5">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                linkedOD.verificationStatus === 'fully_updated' 
+                                  ? 'bg-emerald-500' 
+                                  : linkedOD.verificationStatus === 'partially_updated' 
+                                    ? 'bg-orange-500' 
+                                    : 'bg-yellow-500'
+                              }`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Admin Remarks */}
+                      <div className="md:col-span-2 space-y-2">
+                        <span className="block text-[10px] text-vit-neutral-400 font-bold uppercase tracking-wider">Administrative Remarks & Issues Log</span>
+                        {linkedOD.adminRemarks ? (
+                          <pre className="p-3.5 bg-orange-50/40 dark:bg-orange-950/10 border border-orange-200/50 dark:border-orange-900/30 rounded-lg font-mono text-xs whitespace-pre-wrap leading-relaxed text-orange-850 dark:text-orange-400 max-h-[120px] overflow-y-auto">
+                            {linkedOD.adminRemarks}
+                          </pre>
+                        ) : (
+                          <p className="text-xs text-vit-neutral-500 italic py-2">
+                            No administrative remarks logged yet.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Resubmission button */}
+                    {linkedOD.verificationStatus === 'partially_updated' && (
+                      <div className="flex flex-col sm:flex-row gap-3 justify-between items-center bg-orange-50/20 dark:bg-orange-950/5 border border-orange-200/40 dark:border-orange-900/30 rounded-xl p-3">
+                        <span className="text-xs text-vit-neutral-500">
+                          The administrator verified this list with some issues. You have {3 - (selectedPreEvent.odUploadsCount || 0)} upload attempt(s) remaining.
+                        </span>
+                        <button
+                          onClick={() => {
+                            const odId = linkedOD.id || linkedOD._id;
+                            setSelectedPreEvent(null);
+                            router.push(`/ods/edit/${odId}?resubmit=1`);
+                          }}
+                          className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                        >
+                          Resubmit Corrected OD
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
             <div className="flex justify-end pt-2 border-t border-vit-neutral-200 dark:border-vit-neutral-800">
               <button
