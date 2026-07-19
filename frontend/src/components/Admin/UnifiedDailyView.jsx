@@ -184,8 +184,12 @@ const UnifiedDailyView = () => {
                       <p><strong>Time:</strong> {report.eventTime}</p>
                       <p className="col-span-2"><strong>Duration:</strong> {report.eventEndDate && report.eventEndDate !== report.eventDate ? `${report.eventDate} to ${report.eventEndDate}` : report.eventDate}</p>
                       <p className="col-span-2"><strong>Attendance:</strong> {report.numberOfParticipants} students</p>
-                      <p className="col-span-2"><strong>Student Coordinator:</strong> {report.studentCoordinator} {report.studentCoordinatorReg ? `(${report.studentCoordinatorReg})` : ''}</p>
+                      {report.facultyCoordinator && <p className="col-span-2"><strong>Faculty Coordinator:</strong> {report.facultyCoordinator}</p>}
+                      <p className="col-span-2"><strong>Student Coordinator:</strong> {report.studentCoordinator}</p>
                       {report.studentCoordinatorContact && <p className="col-span-2"><strong>Coordinator Contact:</strong> {report.studentCoordinatorContact}</p>}
+                      {report.isCollaboration && report.collaborationClubs && report.collaborationClubs.length > 0 && (
+                        <p className="col-span-2 text-vit-blue font-semibold">🤝 <strong>Collaboration:</strong> {report.collaborationClubs.join(', ')}</p>
+                      )}
                       <p className="col-span-2"><strong>Event Outcome:</strong> {report.outcome}</p>
                     </div>
 

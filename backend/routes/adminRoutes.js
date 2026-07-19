@@ -70,13 +70,30 @@ router.get('/stats', async (req, res) => {
       count: clubGroups[club]
     }));
 
+    const pendingVerification = ods.filter(o => o.verificationStatus === 'pending' || !o.verificationStatus).length;
+    const fullyUpdated = ods.filter(o => o.verificationStatus === 'fully_updated').length;
+    const partiallyUpdated = ods.filter(o => o.verificationStatus === 'partially_updated').length;
+    
+    let totalCompletedStudents = 0;
+    let totalRemainingStudents = 0;
+    
+    ods.forEach(o => {
+      totalCompletedStudents += o.completedStudents || 0;
+      totalRemainingStudents += (o.remainingStudents !== undefined) ? o.remainingStudents : (o.students ? o.students.length : 0);
+    });
+
     res.json({
       cards: {
         totalClubs,
         totalChairpersons,
         totalReports,
         totalODLists,
-        eventsThisMonth
+        eventsThisMonth,
+        pendingVerification,
+        fullyUpdated,
+        partiallyUpdated,
+        totalCompletedStudents,
+        totalRemainingStudents
       },
       charts: {
         monthlyEvents,

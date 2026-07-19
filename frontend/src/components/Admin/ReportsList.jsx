@@ -60,6 +60,64 @@ const ReportsList = () => {
     }
   };
 
+  // Download filtered reports as Excel sheet (Master Sheet)
+  const handleExportExcel = async () => {
+    if (processedReports.length === 0) {
+      showToast('No records found to export.', 'warning');
+      return;
+    }
+
+    try {
+      const xlsx = await import('xlsx');
+      const wsData = [
+        ['Post-Event Reports Master Sheet'],
+        ['Generated Date', new Date().toLocaleDateString()],
+        [],
+        [
+          'Club/Chapter Name', 
+          'Event Name', 
+          'Event Date', 
+          'Number of Participants', 
+          'Faculty Coordinator Name', 
+          'Student Coordinator Name', 
+          'Student Coordinator Contact Number', 
+          'Report Download Link'
+        ]
+      ];
+
+      processedReports.forEach(r => {
+        let reportLink = '';
+        if (r.reportFilePath) {
+          if (r.reportFilePath.startsWith('http://') || r.reportFilePath.startsWith('https://')) {
+            reportLink = r.reportFilePath;
+          } else {
+            reportLink = `${api.defaults.baseURL.replace('/api', '')}${r.reportFilePath}`;
+          }
+        }
+        wsData.push([
+          r.clubName,
+          r.eventName,
+          r.eventDate,
+          r.numberOfParticipants || 0,
+          r.facultyCoordinator || 'N/A',
+          r.studentCoordinator || 'N/A',
+          r.studentCoordinatorContact || 'N/A',
+          reportLink || 'No report uploaded'
+        ]);
+      });
+
+      const wb = xlsx.utils.book_new();
+      const ws = xlsx.utils.aoa_to_sheet(wsData);
+      xlsx.utils.book_append_sheet(wb, ws, 'Reports Master Sheet');
+
+      xlsx.writeFile(wb, 'Reports_Master_Sheet.xlsx');
+      showToast('Master Sheet exported successfully!', 'success');
+    } catch (err) {
+      console.error('Failed to generate Excel:', err);
+      showToast('Failed to export Excel.', 'error');
+    }
+  };
+
   const toggleExpandRow = (id) => {
     setExpandedRow(expandedRow === id ? null : id);
   };
@@ -103,14 +161,23 @@ const ReportsList = () => {
   return (
     <div className="space-y-6 animate-fade-in p-6">
       {/* Page Header */}
-      <div>
-        <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white flex items-center gap-2">
-          <FileText className="w-6 h-6 text-vit-blue" />
-          <span>Post-Event Reports Ledger</span>
-        </h2>
-        <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
-          Review, query, and download PDFs/DOCXs submitted for completed VIT Chennai club events.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white flex items-center gap-2">
+            <FileText className="w-6 h-6 text-vit-blue" />
+            <span>Post-Event Reports Ledger</span>
+          </h2>
+          <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
+            Review, query, and download PDFs/DOCXs submitted for completed VIT Chennai club events.
+          </p>
+        </div>
+        <button
+          onClick={handleExportExcel}
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer flex-shrink-0"
+        >
+          <Download className="w-4 h-4" />
+          <span>Download Master Sheet</span>
+        </button>
       </div>
 
       {loading ? (
@@ -283,10 +350,16 @@ const ReportsList = () => {
                                 <div className="space-y-2">
                                   <p className="text-vit-blue font-bold uppercase tracking-wider text-[10px]">Staff & Coordinator Details</p>
                                   <p><strong>Venue:</strong> {report.venue}</p>
+                                  {report.facultyCoordinator && <p><strong>Faculty Coordinator:</strong> {report.facultyCoordinator}</p>}
                                   <p><strong>Student Coordinator:</strong> {report.studentCoordinator}</p>
-                                  {report.studentCoordinatorReg && <p><strong>Reg Number:</strong> {report.studentCoordinatorReg}</p>}
-                                  {report.studentCoordinatorContact && <p><strong>Contact:</strong> {report.studentCoordinatorContact}</p>}
+                                  {report.studentCoordinatorContact && <p><strong>Coordinator Contact:</strong> {report.studentCoordinatorContact}</p>}
                                   <p><strong>Number of Participants:</strong> {report.numberOfParticipants} Students</p>
+                                  {report.isCollaboration && report.collaborationClubs && report.collaborationClubs.length > 0 && (
+                                    <div className="mt-2 p-2.5 bg-vit-blue/5 border border-vit-blue/20 rounded-xl space-y-1">
+                                      <p className="text-vit-blue font-bold text-[9px] uppercase tracking-wider">🤝 Collaboration Event</p>
+                                      <p className="text-vit-neutral-700 dark:text-vit-neutral-350 leading-relaxed font-semibold text-[10px]">{report.collaborationClubs.join(', ')}</p>
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Narrative column */}

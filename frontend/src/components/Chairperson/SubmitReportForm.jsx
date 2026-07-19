@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../Common/Loader';
@@ -8,6 +8,8 @@ import { ArrowLeft, Link as LinkIcon } from 'lucide-react';
 const SubmitReportForm = () => {
   const { user, showToast } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   const [clubs, setClubs] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(true);
@@ -24,11 +26,47 @@ const SubmitReportForm = () => {
   const [category, setCategory] = useState('');
   const [categoryOthersSpecify, setCategoryOthersSpecify] = useState('');
   const [numberOfParticipants, setNumberOfParticipants] = useState('');
+  const [facultyCoordinator, setFacultyCoordinator] = useState('');
   const [studentCoordinator, setStudentCoordinator] = useState('');
-  const [studentCoordinatorReg, setStudentCoordinatorReg] = useState('');
   const [studentCoordinatorContact, setStudentCoordinatorContact] = useState('');
+  const [isCollaboration, setIsCollaboration] = useState(false);
+  const [collaborationClubs, setCollaborationClubs] = useState([]);
   const [outcome, setOutcome] = useState('');
   const [reportFilePath, setReportFilePath] = useState(''); // Stores Google Drive / document URL link
+  const [reportUploadsCount, setReportUploadsCount] = useState(1);
+
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchReportDetails = async () => {
+        try {
+          const response = await api.get(`/reports/${id}`);
+          const r = response.data;
+          setClubId(r.clubId);
+          setClubName(r.clubName);
+          setEventName(r.eventName);
+          setEventDate(r.eventDate);
+          setEventEndDate(r.eventEndDate);
+          setEventTime(r.eventTime);
+          setVenue(r.venue);
+          setCategory(r.category);
+          setCategoryOthersSpecify(r.categoryOthersSpecify || '');
+          setNumberOfParticipants(r.numberOfParticipants);
+          setFacultyCoordinator(r.facultyCoordinator || '');
+          setStudentCoordinator(r.studentCoordinator);
+          setStudentCoordinatorContact(r.studentCoordinatorContact);
+          setOutcome(r.outcome);
+          setReportFilePath(r.reportFilePath);
+          setIsCollaboration(r.isCollaboration || false);
+          setCollaborationClubs(r.collaborationClubs || []);
+          setReportUploadsCount(r.reportUploadsCount || 1);
+        } catch (err) {
+          console.error('Error fetching report details:', err);
+          showToast('Failed to load report details for editing.', 'error');
+        }
+      };
+      fetchReportDetails();
+    }
+  }, [id, isEditMode]);
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -78,16 +116,24 @@ const SubmitReportForm = () => {
       category,
       categoryOthersSpecify: category === 'Others' ? categoryOthersSpecify : '',
       numberOfParticipants: parseInt(numberOfParticipants, 10),
+      facultyCoordinator: facultyCoordinator.trim(),
       studentCoordinator: studentCoordinator.trim(),
-      studentCoordinatorReg: studentCoordinatorReg.trim().toUpperCase(),
+      studentCoordinatorReg: 'N/A',
       studentCoordinatorContact: studentCoordinatorContact.trim(),
       outcome: outcome.trim(),
-      reportFilePath: reportFilePath.trim() // Stores Drive link
+      reportFilePath: reportFilePath.trim(), // Stores Drive link
+      isCollaboration,
+      collaborationClubs
     };
 
     try {
-      await api.post('/reports', payload);
-      showToast('Event report submitted successfully!', 'success');
+      if (isEditMode) {
+        await api.put(`/reports/${id}`, payload);
+        showToast('Event report updated successfully!', 'success');
+      } else {
+        await api.post('/reports', payload);
+        showToast('Event report submitted successfully!', 'success');
+      }
       navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.message || 'Error submitting event report.';
@@ -117,11 +163,25 @@ const SubmitReportForm = () => {
       </button>
 
       {/* Title */}
-      <div>
-        <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white">Submit Post-Event Report</h2>
-        <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
-          Complete the details below to submit your event report. Student OD uploads will unlock upon submission.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white">
+            {isEditMode ? 'Edit Event Report' : 'Submit Post-Event Report'}
+          </h2>
+          <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
+            {isEditMode ? 'Modify the fields below to update your event report details.' : 'Complete the details below to submit your event report. Student OD uploads will unlock upon submission.'}
+          </p>
+        </div>
+        {isEditMode && (
+          <div className={`px-4 py-2 border rounded-xl font-bold text-xs flex flex-col items-center justify-center flex-shrink-0 bg-white dark:bg-vit-neutral-950 ${
+            (3 - reportUploadsCount) > 0 ? 'border-amber-250 text-amber-600 dark:border-amber-900/50 dark:text-amber-400' : 'border-red-200 text-red-500'
+          }`}>
+            <span>Upload Limit Status</span>
+            <span className="text-[10px] text-vit-neutral-500 dark:text-vit-neutral-400 font-medium">
+              {(3 - reportUploadsCount) > 0 ? `${3 - reportUploadsCount} edit attempt(s) remaining` : '0 attempts remaining (limit reached)'}
+            </span>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -237,6 +297,11 @@ const SubmitReportForm = () => {
                 <option value="Hackathon">Hackathon</option>
                 <option value="Workshop">Workshop</option>
                 <option value="Management">Management</option>
+                <option value="Women's internal">Women's internal</option>
+                <option value="Women external">Women external</option>
+                <option value="Outreach events">Outreach events</option>
+                <option value="Women's only event">Women's only event</option>
+                <option value="Gender equity programs">Gender equity programs</option>
                 <option value="Others">Others (Specify)</option>
               </select>
             </div>
@@ -256,13 +321,70 @@ const SubmitReportForm = () => {
                 />
               </div>
             )}
+
+            {/* Collaboration Event Section */}
+            <div className="md:col-span-2 border-t border-vit-neutral-200 dark:border-vit-neutral-750 pt-4 mt-2">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isCollaboration}
+                  onChange={(e) => {
+                    setIsCollaboration(e.target.checked);
+                    if (!e.target.checked) setCollaborationClubs([]);
+                  }}
+                  className="w-4 h-4 rounded border-vit-neutral-300 text-vit-blue focus:ring-vit-blue cursor-pointer"
+                />
+                <span className="text-sm font-bold text-vit-navy dark:text-white uppercase tracking-wider">
+                  Collaboration Event (Conducting event with other clubs)
+                </span>
+              </label>
+
+              {isCollaboration && (
+                <div className="space-y-3 mt-4 animate-fade-in">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500">
+                    Select Collaborating Clubs / Chapters (Select all that apply)
+                  </span>
+                  <div className="flex flex-wrap gap-2.5 max-h-44 overflow-y-auto p-3.5 bg-vit-neutral-50/50 dark:bg-vit-neutral-900/50 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-2xl">
+                    {clubs
+                      .filter(c => (c.id || c._id) !== clubId)
+                      .map(c => {
+                        const isChecked = collaborationClubs.includes(c.name);
+                        return (
+                          <label
+                            key={c.id || c._id}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold cursor-pointer select-none transition-all ${
+                              isChecked
+                                ? 'bg-vit-blue/10 border-vit-blue text-vit-blue shadow-sm'
+                                : 'bg-white dark:bg-vit-neutral-950 border-vit-neutral-200 dark:border-vit-neutral-700 text-vit-neutral-655 dark:text-vit-neutral-400 hover:border-vit-neutral-400'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) {
+                                  setCollaborationClubs(prev => prev.filter(name => name !== c.name));
+                                } else {
+                                  setCollaborationClubs(prev => [...prev, c.name]);
+                                }
+                              }}
+                              className="sr-only"
+                            />
+                            <span>{c.name}</span>
+                          </label>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* SECTION 2: Participant & Student Coordinator details */}
+        {/* SECTION 2: Attendance & Coordinator Details */}
         <div className="glass-panel p-6 space-y-6">
           <h3 className="text-base font-bold text-vit-navy dark:text-white border-b border-vit-neutral-200 dark:border-vit-neutral-700 pb-2">
-            2. Attendance and Student Coordinator details
+            2. Attendance & Coordinator Details
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -276,6 +398,20 @@ const SubmitReportForm = () => {
                 onChange={(e) => setNumberOfParticipants(e.target.value)}
                 placeholder="e.g. 150"
                 min="1"
+                className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
+                Faculty Coordinator Name
+              </label>
+              <input
+                type="text"
+                value={facultyCoordinator}
+                onChange={(e) => setFacultyCoordinator(e.target.value)}
+                placeholder="e.g. Dr. A. Ramanathan"
                 className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
                 required
               />
@@ -297,27 +433,13 @@ const SubmitReportForm = () => {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Student Coordinator Registration Number
-              </label>
-              <input
-                type="text"
-                value={studentCoordinatorReg}
-                onChange={(e) => setStudentCoordinatorReg(e.target.value)}
-                placeholder="e.g. 23MIA1110"
-                className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium uppercase"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
                 Student Coordinator Contact Number
               </label>
               <input
                 type="tel"
                 value={studentCoordinatorContact}
                 onChange={(e) => setStudentCoordinatorContact(e.target.value)}
-                placeholder="e.g. +91 98765 43210"
+                placeholder="e.g. +91 98765 XXXXX"
                 className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
                 required
               />
@@ -349,7 +471,7 @@ const SubmitReportForm = () => {
         {/* SECTION 4: Drive Document Link */}
         <div className="glass-panel p-6 space-y-6">
           <h3 className="text-base font-bold text-vit-navy dark:text-white border-b border-vit-neutral-200 dark:border-vit-neutral-700 pb-2">
-            4. Report file upload
+            4. Report File Upload
           </h3>
 
           <div className="space-y-2">
@@ -389,7 +511,7 @@ const SubmitReportForm = () => {
             disabled={submitting}
             className="px-6 py-3 glow-btn-primary rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Submitting Report...' : 'Submit Report'}
+            {submitting ? 'Saving changes...' : (isEditMode ? 'Save Changes' : 'Submit Report')}
           </button>
         </div>
       </form>

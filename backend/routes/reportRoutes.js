@@ -108,10 +108,12 @@ router.post('/', verifyToken, async (req, res) => {
       reportFilePath, // Stores the drive/docx link from user
       facultyCoordinator,
       description,
-      budgetUsed
+      budgetUsed,
+      isCollaboration,
+      collaborationClubs
     } = req.body;
 
-    if (!eventName || !eventDate || !eventEndDate || !eventTime || !venue || !category || !numberOfParticipants || !studentCoordinator || !studentCoordinatorReg || !studentCoordinatorContact || !outcome || !reportFilePath) {
+    if (!eventName || !eventDate || !eventEndDate || !eventTime || !venue || !category || !numberOfParticipants || !studentCoordinator || !studentCoordinatorContact || !outcome || !reportFilePath) {
       return res.status(400).json({ message: 'Please fill in all required fields.' });
     }
 
@@ -129,7 +131,7 @@ router.post('/', verifyToken, async (req, res) => {
       numberOfParticipants: parseInt(numberOfParticipants, 10),
       facultyCoordinator: facultyCoordinator || '',
       studentCoordinator,
-      studentCoordinatorReg,
+      studentCoordinatorReg: studentCoordinatorReg || 'N/A',
       studentCoordinatorContact,
       description: description || '',
       outcome,
@@ -137,7 +139,11 @@ router.post('/', verifyToken, async (req, res) => {
       photos: [],
       status: 'Submitted Successfully',
       hasOD: false,
-      submittedBy: req.user.id
+      isCollaboration: isCollaboration === true || isCollaboration === 'true',
+      collaborationClubs: Array.isArray(collaborationClubs) ? collaborationClubs : [],
+      submittedBy: req.user.id,
+      reportUploadsCount: 1,
+      odUploadsCount: 0
     });
 
     // Create notifications
@@ -205,6 +211,74 @@ router.get('/:id', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Fetch report detail error:', error);
     res.status(500).json({ message: 'Server error fetching report details.' });
+  }
+});
+
+// PUT /api/reports/:id - Edit an Event Report
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const report = await db.reports.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found.' });
+    }
+
+    // Permissions check
+    let reportUploadsCount = report.reportUploadsCount || 1;
+    if (req.user.role === 'Chairperson') {
+      const chairperson = await db.users.findById(req.user.id);
+      if (report.clubId.toString() !== chairperson.clubId.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only edit your own club\'s reports.' });
+      }
+
+      // Check upload limit
+      if (reportUploadsCount >= 3) {
+        return res.status(400).json({ message: 'Maximum upload/edit attempts reached (3/3) for this Event Report.' });
+      }
+      reportUploadsCount += 1;
+    }
+
+    const updatedReport = await db.reports.findByIdAndUpdate(req.params.id, {
+      ...req.body,
+      reportUploadsCount,
+      numberOfParticipants: req.body.numberOfParticipants ? parseInt(req.body.numberOfParticipants, 10) : report.numberOfParticipants,
+      budgetUsed: req.body.budgetUsed ? parseFloat(req.body.budgetUsed) : report.budgetUsed,
+      isCollaboration: req.body.isCollaboration === true || req.body.isCollaboration === 'true',
+      collaborationClubs: Array.isArray(req.body.collaborationClubs) ? req.body.collaborationClubs : []
+    }, { new: true });
+
+    res.json({ message: 'Report updated successfully.', report: updatedReport });
+  } catch (error) {
+    console.error('Update report error:', error);
+    res.status(500).json({ message: 'Server error updating report.' });
+  }
+});
+
+// DELETE /api/reports/:id - Delete an Event Report and its linked OD List
+router.delete('/:id', verifyToken, async (req, res) => {
+  try {
+    const report = await db.reports.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found.' });
+    }
+
+    // Permissions check
+    if (req.user.role === 'Chairperson') {
+      const chairperson = await db.users.findById(req.user.id);
+      if (report.clubId.toString() !== chairperson.clubId.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only delete your own club\'s reports.' });
+      }
+    }
+
+    // Delete linked OD list
+    await db.ods.findOneAndDelete({ eventId: report.id || report._id });
+
+    // Delete report
+    await db.reports.findByIdAndDelete(req.params.id);
+
+    res.json({ message: 'Report and linked OD list deleted successfully.' });
+  } catch (error) {
+    console.error('Delete report error:', error);
+    res.status(500).json({ message: 'Server error deleting report.' });
   }
 });
 

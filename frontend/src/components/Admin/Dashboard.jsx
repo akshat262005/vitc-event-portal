@@ -12,7 +12,11 @@ import {
   CalendarRange,
   ChevronRight,
   Download,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  Hourglass
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -84,44 +88,44 @@ const AdminDashboard = () => {
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div className="glass-card p-5 flex flex-col justify-between h-32 hover:border-vit-blue/30 transition-colors">
+        <div className="glass-card p-5 flex flex-col justify-between h-32 border-l-4 border-yellow-500 hover:border-yellow-600 transition-colors">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Total Clubs</span>
-            <Compass className="w-4 h-4 text-vit-blue" />
+            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Pending Verification</span>
+            <Clock className="w-4.5 h-4.5 text-yellow-500" />
           </div>
-          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.totalClubs}</p>
+          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.pendingVerification || 0}</p>
         </div>
 
-        <div className="glass-card p-5 flex flex-col justify-between h-32 hover:border-indigo-550/30 transition-colors">
+        <div className="glass-card p-5 flex flex-col justify-between h-32 border-l-4 border-emerald-500 hover:border-emerald-600 transition-colors">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Chairpersons</span>
-            <Users className="w-4 h-4 text-indigo-500" />
+            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Fully Verified</span>
+            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
           </div>
-          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.totalChairpersons}</p>
+          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.fullyUpdated || 0}</p>
         </div>
 
-        <div className="glass-card p-5 flex flex-col justify-between h-32 hover:border-emerald-550/30 transition-colors">
+        <div className="glass-card p-5 flex flex-col justify-between h-32 border-l-4 border-orange-500 hover:border-orange-600 transition-colors">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Event Reports</span>
-            <FileCheck className="w-4 h-4 text-emerald-500" />
+            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Partially Verified</span>
+            <AlertTriangle className="w-4.5 h-4.5 text-orange-500" />
           </div>
-          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.totalReports}</p>
+          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.partiallyUpdated || 0}</p>
         </div>
 
-        <div className="glass-card p-5 flex flex-col justify-between h-32 hover:border-amber-550/30 transition-colors">
+        <div className="glass-card p-5 flex flex-col justify-between h-32 border-l-4 border-blue-500 hover:border-blue-600 transition-colors">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">OD Lists</span>
-            <FileSpreadsheet className="w-4 h-4 text-amber-500" />
+            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Students Completed</span>
+            <Users className="w-4.5 h-4.5 text-blue-500" />
           </div>
-          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.totalODLists}</p>
+          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.totalCompletedStudents || 0}</p>
         </div>
 
-        <div className="glass-card p-5 flex flex-col justify-between h-32 hover:border-sky-550/30 transition-colors">
+        <div className="glass-card p-5 flex flex-col justify-between h-32 border-l-4 border-red-500 hover:border-red-600 transition-colors">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Conducted (Month)</span>
-            <Calendar className="w-4 h-4 text-sky-500" />
+            <span className="text-[11px] font-bold text-vit-neutral-500 uppercase tracking-wider">Students Remaining</span>
+            <Hourglass className="w-4.5 h-4.5 text-red-500" />
           </div>
-          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.eventsThisMonth}</p>
+          <p className="text-2xl font-extrabold text-vit-navy dark:text-white">{cards.totalRemainingStudents || 0}</p>
         </div>
       </div>
 

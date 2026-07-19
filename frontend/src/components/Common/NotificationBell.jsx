@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../../utils/api';
 import { Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -7,7 +8,9 @@ const NotificationBell = ({ align = 'down' }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({});
   const dropdownRef = useRef(null);
+  const popoverRef = useRef(null);
 
   const fetchNotifications = async () => {
     try {
@@ -21,20 +24,35 @@ const NotificationBell = ({ align = 'down' }) => {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Poll every 30 seconds for real-time update feel
+      // Poll every 30 seconds for new notifications
       const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     }
   }, [user]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
         setIsOpen(false);
       }
     };
+
+    const handleClickOutside = (event) => {
+      // Close if clicked outside both the bell button container and the portal popover
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        !(popoverRef.current && popoverRef.current.contains(event.target))
+      ) {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -48,10 +66,28 @@ const NotificationBell = ({ align = 'down' }) => {
     }
   };
 
+  const handleToggle = () => {
+    if (!isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      if (align === 'up') {
+        // Position popover relative to viewport
+        // bottom aligns above the bell icon button
+        const bottom = window.innerHeight - rect.top + 8;
+        setCoords({ bottom, left: rect.left });
+      } else {
+        // Position popover below the bell icon button (mobile header)
+        const top = rect.bottom + 8;
+        const right = window.innerWidth - rect.right;
+        setCoords({ top, right });
+      }
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="relative p-2 text-vit-neutral-500 hover:text-vit-blue dark:text-vit-neutral-400 dark:hover:text-white rounded-lg hover:bg-vit-neutral-100 dark:hover:bg-vit-neutral-800 transition-colors focus:outline-none"
         aria-label="View notifications"
       >
@@ -63,12 +99,15 @@ const NotificationBell = ({ align = 'down' }) => {
         )}
       </button>
 
-      {isOpen && (
-        <div className={`absolute w-80 bg-white dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl shadow-xl z-50 overflow-hidden ${
-          align === 'up' 
-            ? 'bottom-full left-[-160px] mb-3' 
-            : 'right-0 mt-2'
-        }`}>
+      {isOpen && createPortal(
+        <div
+          ref={popoverRef}
+          style={align === 'up' 
+            ? { position: 'fixed', bottom: `${coords.bottom}px`, left: `${coords.left}px` }
+            : { position: 'fixed', top: `${coords.top}px`, right: `${coords.right}px` }
+          }
+          className="w-[calc(100vw-2rem)] sm:w-80 max-h-[400px] overflow-y-auto bg-white/95 dark:bg-vit-neutral-800/95 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl shadow-2xl z-[999999] backdrop-blur overflow-hidden animate-fade-in-down"
+        >
           <div className="px-4 py-3 border-b border-vit-neutral-200 dark:border-vit-neutral-700 flex items-center justify-between">
             <span className="font-semibold text-sm text-vit-neutral-800 dark:text-white">Notifications</span>
             {unreadCount > 0 && (
@@ -107,7 +146,8 @@ const NotificationBell = ({ align = 'down' }) => {
               ))
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
