@@ -374,45 +374,43 @@ const ChairpersonDashboard = () => {
                             <div className="flex flex-col items-center gap-1.5 justify-center">
                               {(() => {
                                 const odAttempts = 3 - (report.odUploadsCount || 0);
+                                const oTotal = linkedOD ? (linkedOD.totalStudents || linkedOD.students?.length || 0) : 0;
+                                const oComp = linkedOD ? (linkedOD.completedStudents || 0) : 0;
+                                const oRem = linkedOD ? (linkedOD.remainingStudents !== undefined ? linkedOD.remainingStudents : Math.max(0, oTotal - oComp)) : 0;
+                                const isDone = oTotal > 0 && (oComp >= oTotal || oRem === 0);
+                                const oStatus = linkedOD ? (
+                                  linkedOD.verificationStatus === 'missed_od_added'
+                                    ? 'missed_od_added'
+                                    : isDone
+                                    ? 'fully_updated'
+                                    : (linkedOD.verificationStatus || 'pending')
+                                ) : null;
                                 return (
                                   <>
                                     <div className="flex items-center gap-1.5 justify-center">
                                       {linkedOD && (
-                                        (() => {
-                                          const oTotal = linkedOD.totalStudents || linkedOD.students?.length || 0;
-                                          const oComp = linkedOD.completedStudents || 0;
-                                          const oRem = linkedOD.remainingStudents !== undefined ? linkedOD.remainingStudents : Math.max(0, oTotal - oComp);
-                                          const isDone = oTotal > 0 && (oComp >= oTotal || oRem === 0);
-                                          const oStatus = linkedOD.verificationStatus === 'missed_od_added'
-                                            ? 'missed_od_added'
-                                            : isDone
-                                            ? 'fully_updated'
-                                            : (linkedOD.verificationStatus || 'pending');
-                                          return (
-                                            <>
-                                              {oStatus === 'fully_updated' && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-250 dark:border-emerald-900/40">
-                                                  🟢 Fully Updated
-                                                </span>
-                                              )}
-                                              {oStatus === 'missed_od_added' && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full font-bold border border-pink-300 dark:border-pink-800">
-                                                  🌸 Missed OD Added
-                                                </span>
-                                              )}
-                                              {oStatus === 'partially_updated' && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full font-bold border border-orange-250 dark:border-orange-900/40">
-                                                  🟠 Partially Updated
-                                                </span>
-                                              )}
-                                              {oStatus === 'pending' && (
-                                                <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full font-bold border border-yellow-250 dark:border-yellow-900/40">
-                                                  🟡 Pending Verification
-                                                </span>
-                                              )}
-                                            </>
-                                          );
-                                        })()
+                                        <>
+                                          {oStatus === 'fully_updated' && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-250 dark:border-emerald-900/40">
+                                              🟢 Fully Updated
+                                            </span>
+                                          )}
+                                          {oStatus === 'missed_od_added' && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full font-bold border border-pink-300 dark:border-pink-800">
+                                              🌸 Missed OD Added
+                                            </span>
+                                          )}
+                                          {oStatus === 'partially_updated' && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full font-bold border border-orange-250 dark:border-orange-900/40">
+                                              🟠 Partially Updated
+                                            </span>
+                                          )}
+                                          {oStatus === 'pending' && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full font-bold border border-yellow-250 dark:border-yellow-900/40">
+                                              🟡 Pending Verification
+                                            </span>
+                                          )}
+                                        </>
                                       )}
                                       {!isCollaboratingClub && linkedOD && (
                                         <>
