@@ -92,7 +92,15 @@ const UploadODForm = () => {
   const requestType = 'post_event';
   const [selectedEventId, setSelectedEventId] = useState(searchParams.get('selectedEventId') || '');
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [odDetails, setOdDetails] = useState(null);
+  const [initialStudentsCount, setInitialStudentsCount] = useState(0);
   const [students, setStudents] = useState([]);
+
+  const isFullyUpdated = isEditMode && (
+    odDetails?.verificationStatus === 'fully_updated' ||
+    odDetails?.verificationStatus === 'missed_od_added' ||
+    (odDetails?.totalStudents > 0 && odDetails?.completedStudents >= odDetails?.totalStudents)
+  );
 
   const odAttempts = selectedEvent ? (3 - (selectedEvent.odUploadsCount || 0)) : 3;
 
@@ -128,6 +136,7 @@ const UploadODForm = () => {
       try {
         const response = await api.get(`/ods/${id}`);
         const od = response.data;
+        setOdDetails(od);
         const evId = od.eventId?._id || od.eventId;
         setSelectedEventId(evId);
         
@@ -144,7 +153,12 @@ const UploadODForm = () => {
           });
         }
         
-        setStudents(sortODStudents(od.students || []));
+        const taggedStudents = (od.students || []).map(s => ({
+          ...s,
+          _isOriginal: true,
+        }));
+        setInitialStudentsCount(taggedStudents.length);
+        setStudents(sortODStudents(taggedStudents));
       } catch (err) {
         console.error('Error loading OD list for edit:', err);
         showToast('Failed to load OD details.', 'error');
@@ -158,7 +172,7 @@ const UploadODForm = () => {
     } else {
       fetchEvents();
     }
-  }, [location, id, isEditMode, requestType]);
+  }, [id, isEditMode, requestType]);
 
   // Update selected event details
   const handleEventChange = (e) => {
@@ -259,6 +273,10 @@ const UploadODForm = () => {
 
   // Delete student from preview list
   const handleDeleteStudent = (index) => {
+    if (isFullyUpdated && students[index]?._isOriginal) {
+      showToast('Verified student records are locked and cannot be deleted.', 'error');
+      return;
+    }
     setStudents(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -270,6 +288,11 @@ const UploadODForm = () => {
     }
     if (students.length === 0) {
       showToast('The student list cannot be empty. Enter manually or upload an Excel sheet.', 'error');
+      return;
+    }
+
+    if (isFullyUpdated && students.length <= initialStudentsCount) {
+      showToast('Please add at least one missed student before submitting.', 'info');
       return;
     }
 
@@ -290,7 +313,11 @@ const UploadODForm = () => {
         await api.put(`/ods/${id}`, {
           students: sortedStudents
         });
-        showToast('OD List updated successfully!', 'success');
+        if (isFullyUpdated) {
+          showToast('Missed OD student(s) added successfully! Status updated to Missed OD Added.', 'success');
+        } else {
+          showToast('OD List updated successfully!', 'success');
+        }
       } else {
         await api.post('/ods', {
           eventId: selectedEventId,
@@ -331,10 +358,22 @@ const UploadODForm = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white">
-            {isResubmitMode ? 'Resubmit Corrected OD List' : (isEditMode ? 'Edit On Duty (OD) Student Ledger' : 'Upload On Duty (OD) Student Ledger')}
+            {isFullyUpdated
+              ? 'Add Missed OD Students (Verified Ledger)'
+              : isResubmitMode
+              ? 'Resubmit Corrected OD List'
+              : isEditMode
+              ? 'Edit On Duty (OD) Student Ledger'
+              : 'Upload On Duty (OD) Student Ledger'}
           </h2>
           <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
-            {isResubmitMode ? 'Upload the revised Excel sheet containing corrected student details.' : (isEditMode ? 'Modify and update student details for academic On-Duty approval.' : 'Provide student details to grant academic On-Duty approval. This page is unlocked for events with submitted reports or pre-event requests.')}
+            {isFullyUpdated
+              ? 'This event OD list is verified. Append additional students who were missed in the original submission.'
+              : isResubmitMode
+              ? 'Upload the revised Excel sheet containing corrected student details.'
+              : isEditMode
+              ? 'Modify and update student details for academic On-Duty approval.'
+              : 'Provide student details to grant academic On-Duty approval. Unlocked for events with submitted reports.'}
           </p>
         </div>
         {selectedEvent && (
@@ -349,24 +388,21 @@ const UploadODForm = () => {
         )}
       </div>
 
-      {/* Request Type Selector (Always Visible in upload mode) */}
-      {!isEditMode && (
-        <div className="glass-panel p-5">
-          <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-            OD Request Type
-          </label>
-          <select
-            value={requestType}
-            onChange={(e) => {
-              setRequestType(e.target.value);
-              setSelectedEventId('');
-              setSelectedEvent(null);
-            }}
-            className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
-          >
-            <option value="post_event">Post-Event Report</option>
-            <option value="pre_event">Pre-Event Operation</option>
-          </select>
+      {/* Verified Append-Only Pink Banner */}
+      {isFullyUpdated && (
+        <div className="bg-pink-50 dark:bg-pink-950/30 border border-pink-300 dark:border-pink-800 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+          <span className="text-2xl shrink-0">🌸</span>
+          <div>
+            <h4 className="text-sm font-bold text-pink-800 dark:text-pink-300 flex items-center gap-2">
+              <span>Verified OD Ledger — Append Only Mode</span>
+              <span className="text-[10px] bg-pink-200/60 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
+                Missed ODs Only
+              </span>
+            </h4>
+            <p className="text-xs text-pink-700 dark:text-pink-300 mt-1 leading-relaxed">
+              This OD list has been verified by Admin. The existing <strong>{initialStudentsCount} student record(s)</strong> are permanently locked and cannot be edited or deleted. You can only append additional students who were missed. Submitting additions will mark the status as <strong>&quot;Missed OD Added&quot;</strong> in pink.
+            </p>
+          </div>
         </div>
       )}
 
@@ -374,18 +410,16 @@ const UploadODForm = () => {
         <div className="glass-panel p-12 text-center text-vit-neutral-500 space-y-4">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
           <p className="font-semibold text-lg">
-            No Unlocked {requestType === 'pre_event' ? 'Pre-Event Operations' : 'Event Reports'} Available
+            No Unlocked Event Reports Available
           </p>
           <p className="text-sm max-w-md mx-auto">
-            {requestType === 'pre_event'
-              ? 'You must first submit a Pre-Event Operation request. Once submitted, the OD upload workflow unlocks for that pre-event activity.'
-              : 'You must first submit a Post-Event Report. Once the report is successfully registered, the OD submission workflow unlocks.'}
+            You must first submit a Post-Event Report. Once the report is successfully registered, the OD submission workflow unlocks.
           </p>
           <button
-            onClick={() => router.push(requestType === 'pre_event' ? '/pre-events/new' : '/reports/new')}
+            onClick={() => router.push('/reports/new')}
             className="px-5 py-2.5 bg-vit-navy text-white text-sm font-semibold rounded-xl hover:bg-vit-blue transition-colors cursor-pointer"
           >
-            {requestType === 'pre_event' ? 'Submit Pre-Event Operation' : 'Submit Event Report'}
+            Submit Event Report
           </button>
         </div>
       ) : (
@@ -617,14 +651,20 @@ const UploadODForm = () => {
                           {student.time}
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteStudent(index)}
-                            className="p-1.5 text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer"
-                            title="Delete Row"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {isFullyUpdated && student._isOriginal ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-md border border-emerald-250 dark:border-emerald-800 select-none">
+                              🔒 Verified
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteStudent(index)}
+                              className="p-1.5 text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors cursor-pointer"
+                              title="Delete Row"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -646,10 +686,18 @@ const UploadODForm = () => {
             <button
               type="button"
               onClick={handleSubmitOD}
-              disabled={submitting || students.length === 0}
-              className="px-6 py-3 bg-gradient-to-r from-vit-navy to-vit-blue hover:from-vit-navy hover:to-vit-blue text-white rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={submitting || students.length === 0 || (isFullyUpdated && students.length <= initialStudentsCount)}
+              className="px-6 py-3 bg-gradient-to-r from-vit-navy to-vit-blue hover:from-vit-navy hover:to-vit-blue text-white rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
-              {submitting ? 'Saving changes...' : (isResubmitMode ? 'Resubmit Corrected OD' : (isEditMode ? 'Save Changes' : 'Submit OD List'))}
+              {submitting
+                ? 'Saving...'
+                : isFullyUpdated
+                ? `Add Missed OD Students (${Math.max(0, students.length - initialStudentsCount)} new)`
+                : isResubmitMode
+                ? 'Resubmit Corrected OD'
+                : isEditMode
+                ? 'Save Changes'
+                : 'Submit OD List'}
             </button>
           </div>
         </div>

@@ -59,13 +59,22 @@ export async function POST(request) {
       categoryOthersSpecify, numberOfParticipants, studentCoordinator,
       studentCoordinatorReg, studentCoordinatorContact, outcome, reportFilePath,
       facultyCoordinator, description, budgetUsed, isCollaboration, collaborationClubs,
-      isSponsored, sponsorName, sponsorAmount,
+      isSponsored, sponsorName, sponsorAmount, eventLocationType,
     } = body;
 
     if (!eventName || !eventDate || !eventEndDate || !eventTime || !venue || !category ||
         !numberOfParticipants || !studentCoordinator || !studentCoordinatorContact ||
         !outcome || !reportFilePath) {
       return jsonError('Please fill in all required fields.', 400);
+    }
+
+    const validLocationTypes = ['VIT Chennai', 'Outside VIT Chennai'];
+    const resolvedLocationType = validLocationTypes.includes(eventLocationType) ? eventLocationType : 'VIT Chennai';
+
+    const isCollab = isCollaboration === true || isCollaboration === 'true';
+    const collabList = Array.isArray(collaborationClubs) ? collaborationClubs.filter(Boolean) : [];
+    if (isCollab && collabList.length === 0) {
+      return jsonError('Please select at least one collaborating club/chapter, or uncheck Collaboration Event if you did not collaborate.', 400);
     }
 
     if (!/^\d{10}$/.test(studentCoordinatorContact.trim())) {
@@ -114,6 +123,7 @@ export async function POST(request) {
       eventDate,
       eventEndDate,
       eventTime,
+      eventLocationType: resolvedLocationType,
       venue,
       category,
       categoryOthersSpecify: category === 'Others' ? categoryOthersSpecify : '',
@@ -129,8 +139,8 @@ export async function POST(request) {
       photos: [],
       status: 'Submitted Successfully',
       hasOD: false,
-      isCollaboration: isCollaboration === true || isCollaboration === 'true',
-      collaborationClubs: Array.isArray(collaborationClubs) ? collaborationClubs : [],
+      isCollaboration: isCollab,
+      collaborationClubs: isCollab ? collabList : [],
       isSponsored: isSponsored === true || isSponsored === 'true',
       sponsorName: isSponsored ? (sponsorName || '') : '',
       sponsorAmount: isSponsored ? (sponsorAmount ? parseFloat(sponsorAmount) : 0) : 0,

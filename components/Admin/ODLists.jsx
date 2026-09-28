@@ -5,7 +5,7 @@ import api from '@/lib/client-api';
 import { useAuth } from '@/context/AuthContext';
 import Loader from '../Common/Loader';
 import { autoFitColumns, applyExcelStyling, isStudentRemarkMatched } from '@/lib/excel-utils';
-import { sortODStudents } from '@/lib/od-utils';
+import { sortODStudents, exportConsolidatedODExcel } from '@/lib/od-utils';
 import {
   FileSpreadsheet,
   Search,
@@ -205,42 +205,10 @@ const ODLists = () => {
 
   const handleDownloadODExcel = async (odItem) => {
     try {
-      const total = odItem.totalStudents || odItem.students?.length || 0;
-      const completed = odItem.completedStudents !== undefined ? odItem.completedStudents : 0;
-      const remaining = odItem.remainingStudents !== undefined ? odItem.remainingStudents : Math.max(0, total - completed);
-      const isDone = total > 0 && (completed >= total || remaining === 0);
-      const effectiveStatus = isDone ? 'fully_updated' : (odItem.verificationStatus || 'pending');
-
-      const form = verificationForm[odItem.id || odItem._id] || {};
-      const currentRemarks = form.adminRemarks !== undefined ? form.adminRemarks : (odItem.adminRemarks || '');
-
       const xlsx = await import('xlsx');
-      const wsData = [
-        ['Club Name', odItem.clubName],
-        ['Event Name', odItem.eventName],
-        ['Event Date', odItem.eventDate],
-        ['Verification Status', effectiveStatus.replace('_', ' ').toUpperCase()],
-        ['Completed Students', completed],
-        ['Remaining Students', remaining],
-        ['Admin Remarks', currentRemarks || 'N/A'],
-        [],
-        ['Registration Number', 'Student Name', 'Date', 'Time', 'Remarks Status (Green / Red)']
-      ];
-
-      const sortedStudents = sortODStudents(odItem.students || []);
-      sortedStudents.forEach(s => {
-        const isMatched = isStudentRemarkMatched(s.registrationNumber, currentRemarks);
-        const remarkStatusText = isMatched ? 'Matched in Remarks (Green)' : 'Pending / Marked Red (Red)';
-        wsData.push([s.registrationNumber.toUpperCase(), s.studentName, s.date || odItem.eventDate, s.time, remarkStatusText]);
-      });
-
-      const wb = xlsx.utils.book_new();
-      const ws = xlsx.utils.aoa_to_sheet(wsData);
-      applyExcelStyling(ws, wsData, 8, 4);
-      ws['!cols'] = autoFitColumns(wsData, 8);
-      xlsx.utils.book_append_sheet(wb, ws, 'OD Student List');
-      xlsx.writeFile(wb, `${odItem.eventName.replace(/[^a-z0-9]/gi, '_')}_OD_List.xlsx`);
-      showToast('OD List Excel exported successfully!', 'success');
+      const fileName = `${odItem.eventName.replace(/[^a-z0-9]/gi, '_')}_Consolidated_OD.xlsx`;
+      exportConsolidatedODExcel(odItem, fileName, xlsx);
+      showToast('Consolidated OD Excel exported successfully (3 Sheets)!', 'success');
     } catch (err) {
       console.error('Failed to generate Excel:', err);
       showToast('Failed to export Excel.', 'error');
@@ -248,7 +216,6 @@ const ODLists = () => {
   };
 
   const handleDownloadOverallPendingODs = async () => {
-    // Filter ODs whose verification status is pending or partially_updated (only events with pending OD verification)
     const pendingOds = ods.filter(od => {
       const total = od.totalStudents || od.students?.length || 0;
       const completed = od.completedStudents || 0;
@@ -265,62 +232,9 @@ const ODLists = () => {
 
     try {
       const xlsx = await import('xlsx');
-      const wsData = [
-        ['Overall Pending OD Verification Report'],
-        ['Generated Date', new Date().toLocaleDateString()],
-        ['Total Pending Events', pendingOds.length],
-        [],
-        [
-          'Club Name',
-          'Event Name',
-          'Event Date',
-          'Registration Number',
-          'Student Name',
-          'OD Date',
-          'Time Slot',
-          'Remark Match Status (Green / Red)',
-          'Admin Remarks / Notes'
-        ]
-      ];
-
-      pendingOds.forEach(odItem => {
-        const form = verificationForm[odItem.id || odItem._id] || {};
-        const activeRemarks = form.adminRemarks !== undefined ? form.adminRemarks : (odItem.adminRemarks || '');
-        const sortedStudents = sortODStudents(odItem.students || []);
-
-        sortedStudents.forEach(s => {
-          const isMatched = isStudentRemarkMatched(s.registrationNumber, activeRemarks);
-          const remarkStatusText = isMatched ? 'Matched in Remarks (Green)' : 'Pending / Marked Red (Red)';
-          
-          let specificNote = '';
-          if (activeRemarks) {
-            const lines = activeRemarks.split('\n');
-            const matchLine = lines.find(l => l.toUpperCase().includes(s.registrationNumber.toUpperCase()));
-            if (matchLine) specificNote = matchLine.trim();
-          }
-
-          wsData.push([
-            odItem.clubName,
-            odItem.eventName,
-            odItem.eventDate,
-            s.registrationNumber.toUpperCase(),
-            s.studentName,
-            s.date || odItem.eventDate,
-            s.time,
-            remarkStatusText,
-            specificNote || activeRemarks || 'Awaiting admin verification'
-          ]);
-        });
-      });
-
-      const wb = xlsx.utils.book_new();
-      const ws = xlsx.utils.aoa_to_sheet(wsData);
-      applyExcelStyling(ws, wsData, 4, 7);
-      ws['!cols'] = autoFitColumns(wsData, 4);
-      xlsx.utils.book_append_sheet(wb, ws, 'Pending OD Report');
-      const fileName = `Overall_Pending_OD_Report_${new Date().toISOString().substring(0, 10)}.xlsx`;
-      xlsx.writeFile(wb, fileName);
-      showToast(`Overall Pending OD Report exported successfully! (${pendingOds.length} pending events)`, 'success');
+      const fileName = `Overall_Pending_OD_Slots_${new Date().toISOString().substring(0, 10)}.xlsx`;
+      exportConsolidatedODExcel(pendingOds, fileName, xlsx);
+      showToast(`Consolidated Pending OD Report exported successfully! (${pendingOds.length} pending events, 3 Sheets)`, 'success');
     } catch (err) {
       console.error('Failed to generate Pending OD Report Excel:', err);
       showToast('Failed to export Pending OD Report.', 'error');
@@ -337,6 +251,12 @@ const ODLists = () => {
         return (
           <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-200 dark:border-emerald-900/40">
             🟢 Fully Updated
+          </span>
+        );
+      case 'missed_od_added':
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2.5 py-1 rounded-full font-bold border border-pink-300 dark:border-pink-800">
+            🌸 Missed OD Added
           </span>
         );
       case 'partially_updated':
@@ -467,6 +387,7 @@ const ODLists = () => {
                 <option value="pending">Pending Verification</option>
                 <option value="fully_updated">Fully Updated</option>
                 <option value="partially_updated">Partially Updated</option>
+                <option value="missed_od_added">Missed OD Added</option>
               </select>
 
               {/* Month filter */}
@@ -665,6 +586,7 @@ const ODLists = () => {
                                             <option value="pending">Pending Verification</option>
                                             <option value="fully_updated">Fully Updated</option>
                                             <option value="partially_updated">Partially Updated</option>
+                                            <option value="missed_od_added">Missed OD Added</option>
                                           </select>
                                         </div>
 

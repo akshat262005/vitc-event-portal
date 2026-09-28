@@ -15,7 +15,7 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const { verificationStatus, completedStudents, adminRemarks } = body;
 
-    if (!['pending', 'fully_updated', 'partially_updated'].includes(verificationStatus)) {
+    if (!['pending', 'fully_updated', 'partially_updated', 'missed_od_added'].includes(verificationStatus)) {
       return jsonError('Invalid verification status.', 400);
     }
 

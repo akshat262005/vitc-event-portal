@@ -6,6 +6,7 @@ import api from '@/lib/client-api';
 import { useAuth } from '@/context/AuthContext';
 import Loader from '../Common/Loader';
 import { autoFitColumns, applyExcelStyling, isStudentRemarkMatched } from '@/lib/excel-utils';
+import { exportConsolidatedODExcel } from '@/lib/od-utils';
 import {
   CalendarDays,
   FileText,
@@ -26,38 +27,68 @@ const UnifiedDailyView = () => {
   const searchParams = useSearchParams();
   
   // Date state
-  const dateParam = searchParams.get('date') || new Date().toISOString().substring(0, 10);
-  const [date, setDate] = useState(dateParam);
+  const todayStr = new Date().toISOString().substring(0, 10);
+  const startParam = searchParams.get('startDate') || searchParams.get('date') || todayStr;
+  const endParam = searchParams.get('endDate') || searchParams.get('date') || startParam;
+
+  const [startDate, setStartDate] = useState(startParam);
+  const [endDate, setEndDate] = useState(endParam);
 
   const [reports, setReports] = useState([]);
   const [ods, setOds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedODRow, setExpandedODRow] = useState(null);
 
-  const fetchDailyData = async (queryDate) => {
+  const fetchDailyData = async (start, end) => {
     setLoading(true);
     try {
-      const response = await api.get(`/admin/daily-view?date=${queryDate}`);
+      const response = await api.get(`/admin/daily-view?startDate=${start}&endDate=${end}`);
       setReports(response.data.reports || []);
       setOds(response.data.ods || []);
     } catch (error) {
       console.error('Failed to load daily view data:', error);
-      showToast('Error loading daily data.', 'error');
+      showToast('Error loading date range data.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDailyData(dateParam);
-    if (date !== dateParam) {
-      setDate(dateParam);
-    }
-  }, [dateParam]);
+    const s = searchParams.get('startDate') || searchParams.get('date') || todayStr;
+    const e = searchParams.get('endDate') || searchParams.get('date') || s;
+    setStartDate(s);
+    setEndDate(e);
+    fetchDailyData(s, e);
+  }, [searchParams]);
 
-  const handleDateChange = (newDate) => {
-    setDate(newDate);
-    router.push(`/admin/daily-view?date=${newDate}`);
+  const handleApplyRange = (newStart, newEnd) => {
+    setStartDate(newStart);
+    setEndDate(newEnd);
+    router.push(`/admin/daily-view?startDate=${newStart}&endDate=${newEnd}`);
+  };
+
+  const setPreset = (type) => {
+    const now = new Date();
+    if (type === 'today') {
+      const d = now.toISOString().substring(0, 10);
+      handleApplyRange(d, d);
+    } else if (type === 'yesterday') {
+      const y = new Date(now);
+      y.setDate(now.getDate() - 1);
+      const d = y.toISOString().substring(0, 10);
+      handleApplyRange(d, d);
+    } else if (type === 'last7') {
+      const past = new Date(now);
+      past.setDate(now.getDate() - 6);
+      handleApplyRange(past.toISOString().substring(0, 10), now.toISOString().substring(0, 10));
+    } else if (type === 'last30') {
+      const past = new Date(now);
+      past.setDate(now.getDate() - 29);
+      handleApplyRange(past.toISOString().substring(0, 10), now.toISOString().substring(0, 10));
+    } else if (type === 'month') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      handleApplyRange(firstDay.toISOString().substring(0, 10), now.toISOString().substring(0, 10));
+    }
   };
 
   const handleDownloadReport = (filePath) => {
@@ -73,43 +104,25 @@ const UnifiedDailyView = () => {
   const handleDownloadODExcel = async (odItem) => {
     try {
       const xlsx = await import('xlsx');
-      const wsData = [
-        ['Club Name', odItem.clubName],
-        ['Event Name', odItem.eventName],
-        ['Event Date', odItem.eventDate],
-        ['Time Slot', odItem.timeSlot || 'N/A'],
-        ['Admin Remarks', odItem.adminRemarks || 'N/A'],
-        [],
-        ['Registration Number', 'Student Name', 'Date', 'Time', 'Remarks Status (Green / Red)']
-      ];
-      
-      (odItem.students || []).forEach(s => {
-        const isMatched = isStudentRemarkMatched(s.registrationNumber, odItem.adminRemarks);
-        const remarkStatusText = isMatched ? 'Matched in Remarks (Green)' : 'Pending / Marked Red (Red)';
-        wsData.push([s.registrationNumber.toUpperCase(), s.studentName, s.date || odItem.eventDate, s.time, remarkStatusText]);
-      });
-
-      const wb = xlsx.utils.book_new();
-      const ws = xlsx.utils.aoa_to_sheet(wsData);
-      applyExcelStyling(ws, wsData, 6, 4);
-      ws['!cols'] = autoFitColumns(wsData, 6);
-      xlsx.utils.book_append_sheet(wb, ws, 'OD Student List');
-      xlsx.writeFile(wb, `${odItem.eventName.replace(/[^a-z0-9]/gi, '_')}_OD_List.xlsx`);
-      showToast('OD List Excel generated successfully.', 'success');
+      exportConsolidatedODExcel(odItem, `${odItem.eventName.replace(/[^a-z0-9]/gi, '_')}_Consolidated_OD.xlsx`, xlsx);
+      showToast('Consolidated OD Excel generated successfully (3 Sheets).', 'success');
     } catch (err) {
       console.error('Excel generation failed:', err);
       showToast('Failed to generate Excel download.', 'error');
     }
   };
 
+  const isRange = startDate !== endDate;
+  const totalStudentsInODs = ods.reduce((acc, o) => acc + (o.students?.length || o.totalStudents || 0), 0);
+
   const handleDownloadBundle = () => {
     if (reports.length === 0 && ods.length === 0) {
-      showToast('No documents available for bundle on this date.', 'error');
+      showToast('No documents available for bundle in this date range.', 'error');
       return;
     }
-    const url = `${api.defaults.baseURL}/admin/daily-bundle?date=${dateParam}`;
+    const url = `${api.defaults.baseURL}/admin/daily-bundle?startDate=${startDate}&endDate=${endDate}`;
     window.open(url, '_blank');
-    showToast('Initiating bundle download...', 'success');
+    showToast(`Initiating ${isRange ? 'date range' : 'daily'} bundle download...`, 'success');
   };
 
   const toggleExpandOD = (index) => {
@@ -119,54 +132,123 @@ const UnifiedDailyView = () => {
   return (
     <div className="space-y-6 animate-fade-in p-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-vit-neutral-200/60 dark:border-vit-neutral-700/60 pb-6">
-        <div>
-          <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white flex items-center gap-2">
-            <CalendarDays className="w-6 h-6 text-vit-blue" />
-            <span>Unified Daily Event Ledger</span>
-          </h2>
-          <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
-            Display all events conducted and student On Duties uploaded on a single calendar day.
-          </p>
+      <div className="flex flex-col gap-4 border-b border-vit-neutral-200/60 dark:border-vit-neutral-700/60 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white flex items-center gap-2">
+              <CalendarDays className="w-6 h-6 text-vit-blue" />
+              <span>Unified Event Ledger & Explorer</span>
+            </h2>
+            <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
+              Display and bundle events conducted and student On-Duty lists campus-wide across any selected date range.
+            </p>
+          </div>
+
+          {/* Download Bundle Button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadBundle}
+              disabled={reports.length === 0 && ods.length === 0}
+              className="flex items-center gap-2 px-5 py-2.5 glow-btn-primary rounded-xl text-sm font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isRange ? 'Download Unified Range Bundle (ZIP)' : 'Download Daily Bundle (ZIP)'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Date Selection and Bundle Downloader */}
-        <div className="flex flex-wrap items-center gap-3">
-          {date !== new Date().toISOString().substring(0, 10) && (
+        {/* Date Selection Bar & Quick Presets */}
+        <div className="bg-vit-neutral-50 dark:bg-vit-neutral-850 p-4 rounded-2xl border border-vit-neutral-200 dark:border-vit-neutral-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="space-y-1">
+              <span className="block text-[10px] font-bold text-vit-neutral-500 uppercase tracking-wider">From Date</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => handleApplyRange(e.target.value, endDate)}
+                className="px-3 py-2 bg-white dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 text-sm font-semibold rounded-xl focus:ring-1 focus:ring-vit-blue outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <span className="block text-[10px] font-bold text-vit-neutral-500 uppercase tracking-wider">To Date</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => handleApplyRange(startDate, e.target.value)}
+                className="px-3 py-2 bg-white dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 text-sm font-semibold rounded-xl focus:ring-1 focus:ring-vit-blue outline-none"
+              />
+            </div>
+
+            {(startDate !== todayStr || endDate !== todayStr) && (
+              <div className="self-end mb-1">
+                <button
+                  onClick={() => setPreset('today')}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl transition-all border border-rose-200 dark:border-rose-900/40 cursor-pointer"
+                  title="Reset back to today"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset to Today</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Presets */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-bold text-vit-neutral-400 mr-1 uppercase">Presets:</span>
             <button
-              onClick={() => handleDateChange(new Date().toISOString().substring(0, 10))}
-              className="flex items-center gap-1.5 px-3 py-2.5 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl transition-all duration-200 border border-rose-200 dark:border-rose-900/40 cursor-pointer"
+              onClick={() => setPreset('today')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                startDate === todayStr && endDate === todayStr
+                  ? 'bg-vit-blue text-white shadow-sm'
+                  : 'bg-white dark:bg-vit-neutral-800 text-vit-neutral-600 dark:text-vit-neutral-300 hover:bg-vit-neutral-100 dark:hover:bg-vit-neutral-700 border border-vit-neutral-200 dark:border-vit-neutral-700'
+              }`}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Date</span>
+              Today
             </button>
-          )}
+            <button
+              onClick={() => setPreset('yesterday')}
+              className="px-3 py-1.5 bg-white dark:bg-vit-neutral-800 text-vit-neutral-600 dark:text-vit-neutral-300 hover:bg-vit-neutral-100 dark:hover:bg-vit-neutral-700 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              Yesterday
+            </button>
+            <button
+              onClick={() => setPreset('last7')}
+              className="px-3 py-1.5 bg-white dark:bg-vit-neutral-800 text-vit-neutral-600 dark:text-vit-neutral-300 hover:bg-vit-neutral-100 dark:hover:bg-vit-neutral-700 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              Last 7 Days
+            </button>
+            <button
+              onClick={() => setPreset('month')}
+              className="px-3 py-1.5 bg-white dark:bg-vit-neutral-800 text-vit-neutral-600 dark:text-vit-neutral-300 hover:bg-vit-neutral-100 dark:hover:bg-vit-neutral-700 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              This Month
+            </button>
+            <button
+              onClick={() => setPreset('last30')}
+              className="px-3 py-1.5 bg-white dark:bg-vit-neutral-800 text-vit-neutral-600 dark:text-vit-neutral-300 hover:bg-vit-neutral-100 dark:hover:bg-vit-neutral-700 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              Last 30 Days
+            </button>
+          </div>
+        </div>
 
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => handleDateChange(e.target.value)}
-            onBlur={(e) => {
-              const val = e.target.value;
-              if (val) {
-                const parts = val.split('-');
-                if (parts[0] && parts[0].length > 4) {
-                  parts[0] = parts[0].slice(0, 4);
-                  handleDateChange(parts.join('-'));
-                }
-              }
-            }}
-            className="px-4 py-2.5 bg-white dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 text-sm font-semibold rounded-xl focus:ring-1 focus:ring-vit-blue outline-none"
-          />
-
-          <button
-            onClick={handleDownloadBundle}
-            disabled={reports.length === 0 && ods.length === 0}
-            className="flex items-center gap-2 px-5 py-3 glow-btn-primary rounded-xl text-sm font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Daily Bundle (ZIP)</span>
-          </button>
+        {/* Date Scope Status Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs bg-vit-sky/20 dark:bg-vit-blue/10 border border-vit-sky dark:border-vit-blue/30 px-4 py-2.5 rounded-xl">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-vit-blue dark:text-sky-300 uppercase tracking-wider">Date Scope:</span>
+            <span className="font-semibold text-vit-neutral-800 dark:text-vit-neutral-200">
+              {isRange ? `${startDate} to ${endDate}` : startDate}
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-vit-neutral-600 dark:text-vit-neutral-350">
+            <span><strong>{reports.length}</strong> Event Report{reports.length === 1 ? '' : 's'}</span>
+            <span>•</span>
+            <span><strong>{ods.length}</strong> OD List{ods.length === 1 ? '' : 's'}</span>
+            <span>•</span>
+            <span><strong>{totalStudentsInODs}</strong> Total Students on OD</span>
+          </div>
         </div>
       </div>
 
@@ -188,7 +270,7 @@ const UnifiedDailyView = () => {
 
             {reports.length === 0 ? (
               <div className="glass-panel p-8 text-center text-vit-neutral-500 dark:text-vit-neutral-400">
-                No reports submitted on this date.
+                No reports found for the selected {isRange ? 'date range' : 'date'}.
               </div>
             ) : (
               <div className="space-y-4">
@@ -253,7 +335,7 @@ const UnifiedDailyView = () => {
 
             {ods.length === 0 ? (
               <div className="glass-panel p-8 text-center text-vit-neutral-500 dark:text-vit-neutral-400">
-                No OD lists submitted on this date.
+                No OD lists found for the selected {isRange ? 'date range' : 'date'}.
               </div>
             ) : (
               <div className="space-y-4">
@@ -269,13 +351,29 @@ const UnifiedDailyView = () => {
                             {od.clubName}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 text-xs bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full font-bold border border-amber-200 dark:border-amber-900/40">
-                            <Clock className="w-3.5 h-3.5" />
-                            {od.timeSlot}
+                        <div className="flex flex-wrap items-center gap-2 justify-end">
+                          <span className="text-xs bg-vit-neutral-100 dark:bg-vit-neutral-800 text-vit-neutral-600 dark:text-vit-neutral-300 px-2.5 py-1 rounded-full font-bold">
+                            {od.eventDate}
+                          </span>
+                          <span className={`text-[11px] px-2.5 py-1 rounded-full font-bold ${
+                            od.verificationStatus === 'fully_updated'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                              : od.verificationStatus === 'missed_od_added'
+                              ? 'bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-800'
+                              : od.verificationStatus === 'partially_updated'
+                              ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                              : 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-800'
+                          }`}>
+                            {od.verificationStatus === 'fully_updated'
+                              ? '✓ Fully Verified'
+                              : od.verificationStatus === 'missed_od_added'
+                              ? '🌸 Missed OD Added'
+                              : od.verificationStatus === 'partially_updated'
+                              ? '⚠ Partially Verified'
+                              : '⏳ Pending'}
                           </span>
                           <span className="text-xs bg-vit-sky text-vit-blue dark:bg-vit-blue/20 dark:text-sky-300 px-2.5 py-1 rounded-full font-bold">
-                            {od.students?.length || 0} Students
+                            {od.students?.length || od.totalStudents || 0} Students
                           </span>
                         </div>
                       </div>

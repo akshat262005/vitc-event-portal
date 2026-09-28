@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Optimize heavy client package imports to speed up dev compilation and reduce bundle size
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts', 'xlsx'],
+  },
   // Serverless-friendly: do not bundle native optional deps incorrectly
   serverExternalPackages: ['mongoose', 'bcryptjs', 'archiver'],
   async headers() {

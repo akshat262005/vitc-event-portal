@@ -163,11 +163,68 @@ export async function PUT(request, { params }) {
       time: s.time.trim(),
     })));
 
+    const isLockedVerified = od.verificationStatus === 'fully_updated' || od.verificationStatus === 'missed_od_added';
+    let newVerificationStatus = od.verificationStatus;
+    let newTotal = mappedStudents.length;
+    let newRemaining = od.remainingStudents;
+
+    if (isLockedVerified) {
+      // Ensure all original students are still present
+      const originalStudents = od.students || [];
+      const mappedKeys = new Set(mappedStudents.map(s => `${s.registrationNumber}_${s.date}_${s.time}`));
+      
+      const missingOriginal = originalStudents.find(
+        os => !mappedKeys.has(`${os.registrationNumber.toUpperCase()}_${os.date}_${os.time}`)
+      );
+
+      if (missingOriginal) {
+        return jsonError(
+          `This OD list has been verified by Admin. Existing student (${missingOriginal.registrationNumber}) cannot be modified or deleted. You may only add more students.`,
+          400
+        );
+      }
+
+      // Check if new students were appended
+      if (mappedStudents.length > originalStudents.length) {
+        newVerificationStatus = 'missed_od_added';
+        newTotal = mappedStudents.length;
+        const completed = od.completedStudents || 0;
+        newRemaining = Math.max(0, newTotal - completed);
+
+        // Notify Admins
+        try {
+          const admins = await db.users.find({ role: 'Admin' });
+          for (const adm of admins) {
+            await db.notifications.create({
+              recipientRole: 'Admin',
+              recipientId: adm.id || adm._id,
+              title: 'Missed OD Added to Verified Event',
+              message: `Club ${od.clubName} added ${mappedStudents.length - originalStudents.length} missed OD student(s) to verified event "${od.eventName}". Status updated to Missed OD Added.`,
+            });
+          }
+        } catch (notifErr) {
+          console.error('Error creating admin notification for missed OD:', notifErr);
+        }
+      }
+    } else {
+      newTotal = mappedStudents.length;
+      const completed = od.completedStudents || 0;
+      newRemaining = Math.max(0, newTotal - completed);
+    }
+
     const updatedOD = await db.ods.findByIdAndUpdate(id, {
       students: mappedStudents,
+      totalStudents: newTotal,
+      remainingStudents: newRemaining,
+      verificationStatus: newVerificationStatus,
     });
 
-    return NextResponse.json({ message: 'OD list updated successfully.', odList: updatedOD });
+    return NextResponse.json({
+      message: newVerificationStatus === 'missed_od_added'
+        ? 'Missed OD students added successfully. Status updated to Missed OD Added.'
+        : 'OD list updated successfully.',
+      odList: updatedOD,
+    });
   } catch (error) {
     console.error('Update OD list error:', error);
     return jsonError('Server error updating OD list.', 500);
@@ -190,6 +247,10 @@ export async function DELETE(request, { params }) {
       if (odClubId !== chairperson.clubId.toString()) {
         return jsonError("Access denied. You can only delete your own club's OD lists.", 403);
       }
+    }
+
+    if (od.verificationStatus === 'fully_updated' || od.verificationStatus === 'missed_od_added') {
+      return jsonError('This OD list has been verified by Admin and cannot be deleted.', 400);
     }
 
     if (od.requestType === 'pre_event') {

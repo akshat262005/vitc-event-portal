@@ -68,6 +68,7 @@ const SubmitReportForm = () => {
   const [eventStartTime, setEventStartTime] = useState('');
   const [eventEndTime, setEventEndTime] = useState('');
   const [venue, setVenue] = useState('');
+  const [eventLocationType, setEventLocationType] = useState('VIT Chennai');
   const [category, setCategory] = useState([]);
   const [categoryOthersSpecify, setCategoryOthersSpecify] = useState('');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
@@ -125,7 +126,8 @@ const SubmitReportForm = () => {
           } else if (r.eventTime) {
             setEventStartTime(convertTo24Hour(r.eventTime));
           }
-          setVenue(r.venue);
+          setVenue(r.venue || '');
+          setEventLocationType(r.eventLocationType || 'VIT Chennai');
           setCategory(r.category ? r.category.split(',').map(c => c.trim()) : []);
           setCategoryOthersSpecify(r.categoryOthersSpecify || '');
           setNumberOfParticipants(r.numberOfParticipants);
@@ -182,6 +184,16 @@ const SubmitReportForm = () => {
     e.preventDefault();
     if (!reportFilePath.trim()) {
       showToast('Please submit the Drive/Docx report link.', 'error');
+      return;
+    }
+
+    if (category.length === 0) {
+      showToast('Please select at least one Event Category.', 'error');
+      return;
+    }
+
+    if (isCollaboration && (!collaborationClubs || collaborationClubs.length === 0)) {
+      showToast('Please select at least one collaborating club, or uncheck Collaboration Event if you did not collaborate.', 'error');
       return;
     }
 
@@ -250,6 +262,7 @@ const SubmitReportForm = () => {
       eventEndDate,
       eventTime: `${formatTo12Hour(eventStartTime)} - ${formatTo12Hour(eventEndTime)}`,
       venue,
+      eventLocationType,
       category: category.join(', '),
       categoryOthersSpecify: category.includes('Others') ? categoryOthersSpecify : '',
       numberOfParticipants: parseInt(numberOfParticipants, 10),
@@ -260,7 +273,7 @@ const SubmitReportForm = () => {
       outcome: outcome.trim(),
       reportFilePath: reportFilePath.trim(), // Stores Drive link
       isCollaboration,
-      collaborationClubs,
+      collaborationClubs: isCollaboration ? collaborationClubs : [],
       isSponsored,
       sponsorName: isSponsored ? sponsorName.trim() : '',
       sponsorAmount: isSponsored ? (sponsorAmount ? parseFloat(sponsorAmount) : 0) : 0
@@ -441,25 +454,81 @@ const SubmitReportForm = () => {
               </div>
             </div>
 
+            {/* Mandatory: Event Location / Venue Scope */}
+            <div className="md:col-span-2 space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400">
+                Event Location / Venue Scope <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    eventLocationType === 'VIT Chennai'
+                      ? 'bg-vit-blue/10 border-vit-blue text-vit-blue dark:bg-vit-blue/20 dark:text-sky-300 font-bold shadow-sm ring-1 ring-vit-blue'
+                      : 'bg-vit-neutral-50 dark:bg-vit-neutral-900 border-vit-neutral-200 dark:border-vit-neutral-700 text-vit-neutral-700 dark:text-vit-neutral-300 hover:border-vit-neutral-400'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="eventLocationType"
+                    value="VIT Chennai"
+                    checked={eventLocationType === 'VIT Chennai'}
+                    onChange={(e) => setEventLocationType(e.target.value)}
+                    className="w-4 h-4 text-vit-blue focus:ring-vit-blue cursor-pointer"
+                    required
+                  />
+                  <div>
+                    <p className="text-sm font-bold">At VIT Chennai</p>
+                    <p className="text-[11px] text-vit-neutral-500 dark:text-vit-neutral-400 font-normal">Conducted inside VIT Chennai campus (Auditoriums, Labs, etc.)</p>
+                  </div>
+                </label>
+                <label
+                  className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    eventLocationType === 'Outside VIT Chennai'
+                      ? 'bg-vit-blue/10 border-vit-blue text-vit-blue dark:bg-vit-blue/20 dark:text-sky-300 font-bold shadow-sm ring-1 ring-vit-blue'
+                      : 'bg-vit-neutral-50 dark:bg-vit-neutral-900 border-vit-neutral-200 dark:border-vit-neutral-700 text-vit-neutral-700 dark:text-vit-neutral-300 hover:border-vit-neutral-400'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="eventLocationType"
+                    value="Outside VIT Chennai"
+                    checked={eventLocationType === 'Outside VIT Chennai'}
+                    onChange={(e) => setEventLocationType(e.target.value)}
+                    className="w-4 h-4 text-vit-blue focus:ring-vit-blue cursor-pointer"
+                    required
+                  />
+                  <div>
+                    <p className="text-sm font-bold">Outside VIT Chennai</p>
+                    <p className="text-[11px] text-vit-neutral-500 dark:text-vit-neutral-400 font-normal">External competition, symposium, inter-college event, or tour</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Venue
+                Venue <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={venue}
                 onChange={(e) => setVenue(e.target.value)}
-                placeholder="e.g. MG Auditorium, Nethaji Auditorium"
+                placeholder="e.g. MG Auditorium, Nethaji Auditorium, or External Venue Name"
                 className="w-full px-4 py-3 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium"
                 required
               />
             </div>
 
-            {/* Event Category */}
-            <div className="category-dropdown-container relative">
-              <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                Event Category
-              </label>
+            {/* Event Category with Multiple Selection Note */}
+            <div className="category-dropdown-container relative z-40">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400">
+                  Event Category <span className="text-red-500">*</span>
+                </label>
+                <span className="text-[10px] font-bold text-vit-blue dark:text-sky-400 bg-vit-blue/10 dark:bg-vit-blue/20 px-2 py-0.5 rounded-full border border-vit-blue/20">
+                  ℹ Note: You can select multiple
+                </span>
+              </div>
               <div className="relative">
                 <button
                   type="button"
@@ -475,7 +544,7 @@ const SubmitReportForm = () => {
                 </button>
 
                 {categoryDropdownOpen && (
-                  <div className="absolute z-35 w-full mt-2 bg-white dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl shadow-xl p-3.5 space-y-1.5 max-h-60 overflow-y-auto">
+                  <div className="absolute z-50 left-0 right-0 mt-2 bg-white dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl shadow-2xl p-3.5 space-y-1.5 max-h-60 overflow-y-auto ring-1 ring-black/5">
                     {CATEGORIES.map(cat => {
                       const isChecked = category.includes(cat);
                       return (
@@ -503,7 +572,7 @@ const SubmitReportForm = () => {
             {category.includes('Others') && (
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                  Specify Category
+                  Specify Category <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -517,7 +586,7 @@ const SubmitReportForm = () => {
             )}
 
             {/* Collaboration Event Section */}
-            <div className="md:col-span-2 border-t border-vit-neutral-200 dark:border-vit-neutral-750 pt-4 mt-2">
+            <div className="md:col-span-2 border-t border-vit-neutral-200 dark:border-vit-neutral-750 pt-4 mt-2 relative z-20">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -532,12 +601,22 @@ const SubmitReportForm = () => {
                   Collaboration Event (Conducting event with other clubs)
                 </span>
               </label>
+              <p className="text-[11px] text-vit-neutral-500 dark:text-vit-neutral-400 mt-1 pl-6">
+                💡 <strong>Important:</strong> If you did not collaborate with other clubs, leave this box unticked. If ticked, you must select at least one collaborating club below.
+              </p>
 
               {isCollaboration && (
                 <div className="space-y-3 mt-4 animate-fade-in collaboration-dropdown-container relative">
-                  <span className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500">
-                    Select Collaborating Clubs / Chapters
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500">
+                      Select Collaborating Clubs / Chapters <span className="text-red-500">*</span>
+                    </span>
+                    {collaborationClubs.length === 0 && (
+                      <span className="text-[11px] font-bold text-red-500 animate-pulse">
+                        ⚠️ At least one club must be selected
+                      </span>
+                    )}
+                  </div>
                   <div className="relative">
                     <button
                       type="button"

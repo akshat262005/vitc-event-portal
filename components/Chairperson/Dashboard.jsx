@@ -382,12 +382,22 @@ const ChairpersonDashboard = () => {
                                           const oTotal = linkedOD.totalStudents || linkedOD.students?.length || 0;
                                           const oComp = linkedOD.completedStudents || 0;
                                           const oRem = linkedOD.remainingStudents !== undefined ? linkedOD.remainingStudents : Math.max(0, oTotal - oComp);
-                                          const oStatus = (oTotal > 0 && (oComp >= oTotal || oRem === 0)) ? 'fully_updated' : (linkedOD.verificationStatus || 'pending');
+                                          const isDone = oTotal > 0 && (oComp >= oTotal || oRem === 0);
+                                          const oStatus = linkedOD.verificationStatus === 'missed_od_added'
+                                            ? 'missed_od_added'
+                                            : isDone
+                                            ? 'fully_updated'
+                                            : (linkedOD.verificationStatus || 'pending');
                                           return (
                                             <>
                                               {oStatus === 'fully_updated' && (
                                                 <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-250 dark:border-emerald-900/40">
                                                   🟢 Fully Updated
+                                                </span>
+                                              )}
+                                              {oStatus === 'missed_od_added' && (
+                                                <span className="inline-flex items-center gap-1 text-[10px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full font-bold border border-pink-300 dark:border-pink-800">
+                                                  🌸 Missed OD Added
                                                 </span>
                                               )}
                                               {oStatus === 'partially_updated' && (
@@ -418,13 +428,15 @@ const ChairpersonDashboard = () => {
                                           >
                                             <Pencil className="w-3.5 h-3.5" />
                                           </button>
-                                          <button
-                                            onClick={() => handleDeleteOD(linkedOD.id || linkedOD._id, report.eventName)}
-                                            className="inline-flex items-center justify-center p-0.5 text-red-655 hover:bg-red-50 dark:text-red-455 dark:hover:bg-red-955/20 rounded-lg transition-colors cursor-pointer"
-                                            title="Delete Student OD List"
-                                          >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                          </button>
+                                          {oStatus !== 'fully_updated' && oStatus !== 'missed_od_added' && (
+                                            <button
+                                              onClick={() => handleDeleteOD(linkedOD.id || linkedOD._id, report.eventName)}
+                                              className="inline-flex items-center justify-center p-0.5 text-red-655 hover:bg-red-50 dark:text-red-455 dark:hover:bg-red-955/20 rounded-lg transition-colors cursor-pointer"
+                                              title="Delete Student OD List"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
                                         </>
                                       )}
                                     </div>
@@ -589,6 +601,7 @@ const ChairpersonDashboard = () => {
                                         <span className="text-vit-neutral-500 font-medium">Status:</span>
                                         <span>
                                           {status === 'fully_updated' && '🟢 Fully Updated'}
+                                          {status === 'missed_od_added' && '🌸 Missed OD Added'}
                                           {status === 'partially_updated' && '🟠 Partially Updated'}
                                           {status === 'pending' && '🟡 Pending Verification'}
                                         </span>

@@ -100,15 +100,27 @@ export async function PUT(request, { params }) {
       return jsonError(displayMsg, 400);
     }
 
+    const isCollab = body.isCollaboration === true || body.isCollaboration === 'true';
+    const collabList = Array.isArray(body.collaborationClubs) ? body.collaborationClubs.filter(Boolean) : [];
+    if (isCollab && collabList.length === 0) {
+      return jsonError('Please select at least one collaborating club/chapter, or uncheck Collaboration Event if you did not collaborate.', 400);
+    }
+
+    const validLocationTypes = ['VIT Chennai', 'Outside VIT Chennai'];
+    const resolvedLocationType = body.eventLocationType && validLocationTypes.includes(body.eventLocationType)
+      ? body.eventLocationType
+      : (report.eventLocationType || 'VIT Chennai');
+
     const updatedReport = await db.reports.findByIdAndUpdate(id, {
       ...body,
+      eventLocationType: resolvedLocationType,
       reportUploadsCount,
       numberOfParticipants: body.numberOfParticipants
         ? parseInt(body.numberOfParticipants, 10)
         : report.numberOfParticipants,
       budgetUsed: body.budgetUsed ? parseFloat(body.budgetUsed) : report.budgetUsed,
-      isCollaboration: body.isCollaboration === true || body.isCollaboration === 'true',
-      collaborationClubs: Array.isArray(body.collaborationClubs) ? body.collaborationClubs : [],
+      isCollaboration: isCollab,
+      collaborationClubs: isCollab ? collabList : [],
       isSponsored: body.isSponsored === true || body.isSponsored === 'true',
       sponsorName: body.isSponsored ? (body.sponsorName || '') : '',
       sponsorAmount: body.isSponsored ? (body.sponsorAmount ? parseFloat(body.sponsorAmount) : 0) : 0,

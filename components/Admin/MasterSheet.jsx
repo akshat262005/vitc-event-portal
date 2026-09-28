@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '@/lib/client-api';
 import { useAuth } from '@/context/AuthContext';
 import Loader from '../Common/Loader';
 import { autoFitColumns, applyExcelStyling, isStudentRemarkMatched } from '@/lib/excel-utils';
-import { sortODStudents } from '@/lib/od-utils';
+import { sortODStudents, buildODRegistryMap } from '@/lib/od-utils';
 import { 
   FileSpreadsheet, 
   Search, 
@@ -18,6 +18,7 @@ import {
 
 const MasterSheet = () => {
   const { showToast } = useAuth();
+  const [registryRecords, setRegistryRecords] = useState(null);
   const [ods, setOds] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [reports, setReports] = useState([]);
@@ -32,17 +33,26 @@ const MasterSheet = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [odsRes, clubsRes, reportsRes] = await Promise.all([
-        api.get('/ods'),
-        api.get('/clubs'),
-        api.get('/reports').catch(() => ({ data: [] }))
-      ]);
-      setOds(odsRes.data);
-      setClubs(clubsRes.data);
-      setReports(reportsRes.data || []);
+      const res = await api.get('/admin/od-registry');
+      if (res.data?.records) {
+        setRegistryRecords(res.data.records);
+        setClubs(res.data.clubs || []);
+      }
     } catch (err) {
-      console.error('Failed to load Master Sheet data:', err);
-      showToast('Error loading database records.', 'error');
+      console.warn('API /admin/od-registry failed, falling back to /ods:', err);
+      try {
+        const [odsRes, clubsRes, reportsRes] = await Promise.all([
+          api.get('/ods'),
+          api.get('/clubs'),
+          api.get('/reports').catch(() => ({ data: [] }))
+        ]);
+        setOds(odsRes.data || []);
+        setClubs(clubsRes.data || []);
+        setReports(reportsRes.data || []);
+      } catch (fallbackErr) {
+        console.error('Failed to load Master Sheet data:', fallbackErr);
+        showToast('Error loading database records.', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -60,75 +70,39 @@ const MasterSheet = () => {
     setFilterStatus('');
   };
 
-  // Flatten the OD lists into individual student records with contextual remarks
-  const allStudents = [];
-  ods.forEach(od => {
-    const studentsList = sortODStudents(od.students || []);
-    studentsList.forEach(student => {
-      // Parse specific remark matching this student's registration number
-      let specificRemark = '';
-      if (od.adminRemarks) {
-        const lines = od.adminRemarks.split('\n');
-        const reg = student.registrationNumber.toUpperCase();
-        const lineMatch = lines.find(line => line.toUpperCase().includes(reg));
-        if (lineMatch) {
-          specificRemark = lineMatch.trim();
-        }
-      }
+  // Keyed OD Registry: Registration Number is the key.
+  // Check whether it exists already; if not, add as key with event name, date, status, remarks as value.
+  // If it is there already, update the value with the latest event details.
+  const allStudents = useMemo(() => {
+    if (registryRecords && registryRecords.length > 0) {
+      return registryRecords;
+    }
+    const map = buildODRegistryMap(ods, reports);
+    return Array.from(map.values());
+  }, [registryRecords, ods, reports]);
 
-        const total = od.totalStudents !== undefined ? od.totalStudents : (od.students?.length || 0);
-        const completed = od.completedStudents || 0;
-        const remaining = od.remainingStudents !== undefined ? od.remainingStudents : Math.max(0, total - completed);
-        const isDone = total > 0 && (completed >= total || remaining === 0);
-        const effectiveStatus = isDone ? 'fully_updated' : (od.verificationStatus || 'pending');
+  // Filter processing (Optimized tokenized search with memoization)
+  const filteredRecords = useMemo(() => {
+    const rawQuery = searchQuery.trim().toLowerCase();
+    const tokens = rawQuery ? rawQuery.split(/\s+/).filter(Boolean) : [];
 
-        // Match event category from reports
-        const matchedReport = reports.find(r => (r.id || r._id) === od.eventId);
-        const eventCategory = matchedReport
-          ? (matchedReport.categoryOthersSpecify ? `${matchedReport.category} (${matchedReport.categoryOthersSpecify})` : (matchedReport.category || 'N/A'))
-          : 'N/A';
+    const result = allStudents.filter(record => {
+      const matchSearch = tokens.length === 0 ? true : tokens.every(token => (
+        record.registrationNumber.toLowerCase().includes(token) ||
+        record.studentName.toLowerCase().includes(token) ||
+        record.eventName.toLowerCase().includes(token) ||
+        record.clubName.toLowerCase().includes(token)
+      ));
 
-        const isMatchedInRemarks = isStudentRemarkMatched(student.registrationNumber, od.adminRemarks);
+      const matchDate = filterDate ? record.date === filterDate : true;
+      const matchClub = filterClub ? (String(record.clubId) === String(filterClub)) : true;
+      const matchStatus = filterStatus ? record.verificationStatus === filterStatus : true;
 
-        allStudents.push({
-          id: `${od.id || od._id}-${student.registrationNumber}`,
-          registrationNumber: student.registrationNumber.toUpperCase(),
-          studentName: student.studentName,
-          date: student.date || od.eventDate, // Student's OD Date
-          time: student.time,
-          eventName: od.eventName,
-          eventCategory: eventCategory,
-          clubName: od.clubName,
-          clubId: od.clubId,
-          verificationStatus: effectiveStatus,
-          specificRemark: specificRemark,
-          generalRemarks: od.adminRemarks || '',
-          isMatchedInRemarks: isMatchedInRemarks
-        });
-      });
+      return matchSearch && matchDate && matchClub && matchStatus;
     });
 
-  // Filter processing (Optimized tokenized search)
-  const filteredRecords = sortODStudents(allStudents.filter(record => {
-    const rawQuery = searchQuery.trim().toLowerCase();
-    const matchSearch = !rawQuery ? true : (() => {
-      const tokens = rawQuery.split(/\s+/).filter(Boolean);
-      return tokens.every(token => {
-        return (
-          record.registrationNumber.toLowerCase().includes(token) ||
-          record.studentName.toLowerCase().includes(token) ||
-          record.eventName.toLowerCase().includes(token) ||
-          record.clubName.toLowerCase().includes(token)
-        );
-      });
-    })();
-
-    const matchDate = filterDate ? record.date === filterDate : true;
-    const matchClub = filterClub ? record.clubId === filterClub : true;
-    const matchStatus = filterStatus ? record.verificationStatus === filterStatus : true;
-
-    return matchSearch && matchDate && matchClub && matchStatus;
-  }));
+    return sortODStudents(result);
+  }, [allStudents, searchQuery, filterDate, filterClub, filterStatus]);
 
   // Download filtered list as Excel sheet
   const handleExportExcel = async () => {
@@ -150,9 +124,10 @@ const MasterSheet = () => {
       ];
 
       filteredRecords.forEach(r => {
-        let remarksText = r.specificRemark;
+        let remarksText = r.specificRemark || r.remarks;
         if (!remarksText) {
           if (r.verificationStatus === 'fully_updated') remarksText = 'Verified Successfully';
+          else if (r.verificationStatus === 'missed_od_added') remarksText = 'Missed OD added (Verified ledger)';
           else if (r.verificationStatus === 'pending') remarksText = 'Pending Verification';
           else remarksText = 'No issues logged';
         }
@@ -172,6 +147,7 @@ const MasterSheet = () => {
           remarksText
         ]);
       });
+
 
       const wb = xlsx.utils.book_new();
       const ws = xlsx.utils.aoa_to_sheet(wsData);
@@ -291,6 +267,7 @@ const MasterSheet = () => {
                   <option value="pending">🟡 Pending Verification</option>
                   <option value="partially_updated">🟠 Partially Updated</option>
                   <option value="fully_updated">🟢 Fully Updated</option>
+                  <option value="missed_od_added">🌸 Missed OD Added</option>
                 </select>
               </div>
             </div>
@@ -337,6 +314,14 @@ const MasterSheet = () => {
                         <td className="px-6 py-4 space-y-0.5 max-w-[200px]">
                           <p className="font-bold text-vit-navy dark:text-vit-neutral-200 truncate" title={record.eventName}>
                             {record.eventName}
+                            {record.eventsCount > 1 && (
+                              <span 
+                                title={`Student has attended ${record.eventsCount} events:\n${record.allEvents?.join('\n') || ''}`}
+                                className="ml-1.5 inline-block text-[9px] font-bold px-1.5 py-0.5 bg-vit-blue/10 dark:bg-sky-950/40 text-vit-blue dark:text-sky-300 rounded cursor-help"
+                              >
+                                +{record.eventsCount - 1} more
+                              </span>
+                            )}
                           </p>
                           <p className="text-[10px] text-vit-neutral-500 truncate" title={record.clubName}>
                             {record.clubName}
@@ -361,6 +346,11 @@ const MasterSheet = () => {
                               🟢 Fully Updated
                             </span>
                           )}
+                          {record.verificationStatus === 'missed_od_added' && (
+                            <span className="inline-flex items-center gap-1 text-[9px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full font-bold border border-pink-300 dark:border-pink-800">
+                              🌸 Missed OD Added
+                            </span>
+                          )}
                           {record.verificationStatus === 'partially_updated' && (
                             <span className="inline-flex items-center gap-1 text-[9px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-450 px-2 py-0.5 rounded-full font-bold border border-orange-200 dark:border-orange-900/40">
                               🟠 Partially Updated
@@ -382,6 +372,11 @@ const MasterSheet = () => {
                               {record.verificationStatus === 'fully_updated' && (
                                 <span className="inline-block p-1.5 bg-emerald-50/40 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium rounded">
                                   Verified successfully
+                                </span>
+                              )}
+                              {record.verificationStatus === 'missed_od_added' && (
+                                <span className="inline-block p-1.5 bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-300 text-[10px] font-medium rounded border border-pink-200 dark:border-pink-800">
+                                  Missed OD added (Verified ledger)
                                 </span>
                               )}
                               {record.verificationStatus === 'pending' && (
