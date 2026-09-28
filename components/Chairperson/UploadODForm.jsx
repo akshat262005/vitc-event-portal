@@ -292,7 +292,7 @@ const UploadODForm = () => {
     }
 
     if (isFullyUpdated && students.length <= initialStudentsCount) {
-      showToast('Please add at least one missed student before submitting.', 'info');
+      showToast('Please add at least one student before submitting.', 'info');
       return;
     }
 
@@ -313,11 +313,7 @@ const UploadODForm = () => {
         await api.put(`/ods/${id}`, {
           students: sortedStudents
         });
-        if (isFullyUpdated) {
-          showToast('Missed OD student(s) added successfully! Status updated to Missed OD Added.', 'success');
-        } else {
-          showToast('OD List updated successfully!', 'success');
-        }
+        showToast('OD student list updated successfully!', 'success');
       } else {
         await api.post('/ods', {
           eventId: selectedEventId,
@@ -658,7 +654,7 @@ const UploadODForm = () => {
               {submitting
                 ? 'Saving...'
                 : isFullyUpdated
-                ? `Add Missed OD Students (${Math.max(0, students.length - initialStudentsCount)} new)`
+                ? `Update OD Student List (${Math.max(0, students.length - initialStudentsCount)} new)`
                 : isResubmitMode
                 ? 'Resubmit Corrected OD'
                 : isEditMode

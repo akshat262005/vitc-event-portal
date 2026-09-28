@@ -48,32 +48,43 @@ export async function PUT(request, { params }) {
         if (match[1]) parsedRegs.add(match[1].toUpperCase());
       }
 
+      // Cumulative set of verified registration numbers
+      const existingVerifiedSet = new Set((odList.verifiedRegistrationNumbers || []).map(r => String(r).trim().toUpperCase()));
+      parsedRegs.forEach(r => existingVerifiedSet.add(r));
+
       const matchedStudents = studentsList.filter(s => {
         const r = (s.registrationNumber || '').trim().toUpperCase();
-        return parsedRegs.has(r) || cleanRemarks.includes(r);
+        return existingVerifiedSet.has(r) || parsedRegs.has(r) || cleanRemarks.includes(r);
       });
       const matchedCount = matchedStudents.length;
+      const explicitCompleted = completedStudents !== undefined ? parseInt(completedStudents, 10) : 0;
+      let effectiveCompleted = Math.max(matchedCount, explicitCompleted);
+
+      // Add all matched students to existingVerifiedSet
+      matchedStudents.forEach(s => {
+        const r = (s.registrationNumber || '').trim().toUpperCase();
+        if (r) existingVerifiedSet.add(r);
+      });
 
       if (verificationStatus === 'fully_updated') {
         // Enforce check: All registration numbers must be present
-        if (total > 0 && matchedCount < total) {
+        if (total > 0 && effectiveCompleted < total) {
           finalVerificationStatus = 'partially_updated';
-          completed = matchedCount;
-          remaining = total - matchedCount;
+          completed = effectiveCompleted;
+          remaining = total - effectiveCompleted;
         } else {
           finalVerificationStatus = 'fully_updated';
           completed = total;
           remaining = 0;
+          studentsList.forEach(s => {
+            const r = (s.registrationNumber || '').trim().toUpperCase();
+            if (r) existingVerifiedSet.add(r);
+          });
         }
       } else if (verificationStatus === 'partially_updated') {
-        if (matchedCount > 0) {
-          completed = matchedCount;
-          remaining = total - matchedCount;
-        } else {
-          completed = completedStudents !== undefined ? parseInt(completedStudents, 10) : 0;
-          remaining = total - completed;
-        }
-        if (total > 0 && matchedCount >= total) {
+        completed = effectiveCompleted;
+        remaining = Math.max(0, total - completed);
+        if (total > 0 && completed >= total) {
           finalVerificationStatus = 'fully_updated';
           completed = total;
           remaining = 0;
@@ -92,6 +103,7 @@ export async function PUT(request, { params }) {
       completedStudents: completed,
       remainingStudents: remaining,
       adminRemarks: remarks,
+      verifiedRegistrationNumbers: Array.from(existingVerifiedSet || []),
       verifiedBy: auth.user.id,
       verifiedAt: new Date(),
     });

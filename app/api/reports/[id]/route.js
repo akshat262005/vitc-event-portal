@@ -44,7 +44,7 @@ export async function PUT(request, { params }) {
       return jsonError('Student Coordinator Contact Number must be a valid 10-digit number.', 400);
     }
 
-    let reportUploadsCount = report.reportUploadsCount || 1;
+    let reportUploadsCount = (report.reportUploadsCount || 1) + 1;
     if (auth.user.role === 'Chairperson') {
       const chairperson = await db.users.findById(auth.user.id);
       const reportClubId = report.clubId?._id ? report.clubId._id.toString() : report.clubId.toString();
@@ -52,10 +52,6 @@ export async function PUT(request, { params }) {
       if (reportClubId !== chairpersonClubId) {
         return jsonError("Access denied. You can only edit your own club's reports.", 403);
       }
-      if (reportUploadsCount >= 3) {
-        return jsonError('Maximum upload/edit attempts reached (3/3) for this Event Report.', 400);
-      }
-      reportUploadsCount += 1;
     }
 
     // Duplicate Event Validation on Update
@@ -66,7 +62,7 @@ export async function PUT(request, { params }) {
     
     const normalizeName = (name) => name ? name.trim().toLowerCase().replace(/\s+/g, ' ') : '';
     const normalizedInputName = normalizeName(targetEventName);
-    const existingReports = await db.reports.find({});
+    const existingReports = await db.reports.find({ eventDate: targetEventDate });
     
     const duplicateReport = existingReports.find(r => {
       const rId = r.id || r._id?.toString();

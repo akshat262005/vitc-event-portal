@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import api from '@/lib/client-api';
 import { useAuth } from '@/context/AuthContext';
 import Loader from '../Common/Loader';
-import { autoFitColumns, applyExcelStyling, isStudentRemarkMatched } from '@/lib/excel-utils';
+import { autoFitColumns, applyExcelStyling, isStudentRemarkMatched, parseRegistrationNumbersFromRemarks } from '@/lib/excel-utils';
 import { sortODStudents, exportConsolidatedODExcel } from '@/lib/od-utils';
 import {
   FileSpreadsheet,
@@ -110,42 +110,40 @@ const ODLists = () => {
         updated.completedStudents = val;
         if (total > 0 && val >= total) {
           updated.verificationStatus = 'fully_updated';
-        } else if (val > 0 && updated.verificationStatus === 'fully_updated') {
+        } else if (val < total && updated.verificationStatus === 'fully_updated') {
           updated.verificationStatus = 'partially_updated';
         }
       }
 
       // Auto-calculate completed count if adminRemarks is updated and contains student registration numbers
       if (field === 'adminRemarks') {
-        const regNoRegex = /\b\d{2}[a-zA-Z]{3,4}\d{4}\b/g;
-        const matched = value.match(regNoRegex);
+        const matched = studentsList.filter(s => {
+          const reg = (s.registrationNumber || '').trim().toUpperCase();
+          return isStudentRemarkMatched(reg, value, odItem?.verifiedRegistrationNumbers);
+        });
 
-        if (matched && matched.length > 0) {
-          const lines = value.split('\n');
-          const completedRegs = new Set();
-
-          lines.forEach(line => {
-            const lineMatch = line.match(/\b\d{2}[a-zA-Z]{3,4}\d{4}\b/);
-            if (lineMatch) {
-              const reg = lineMatch[0].toUpperCase();
-              completedRegs.add(reg);
-            }
-          });
-
-          const completedCount = completedRegs.size;
-          if (completedCount > 0) {
-            updated.completedStudents = Math.min(total, completedCount);
-            if (total > 0 && updated.completedStudents >= total) {
-              updated.verificationStatus = 'fully_updated';
-            } else if (updated.verificationStatus === 'pending') {
-              updated.verificationStatus = 'partially_updated';
-            }
+        const completedCount = matched.length;
+        if (completedCount > 0) {
+          updated.completedStudents = Math.min(total, completedCount);
+          if (total > 0 && updated.completedStudents >= total) {
+            updated.verificationStatus = 'fully_updated';
+          } else {
+            updated.verificationStatus = 'partially_updated';
           }
         }
       }
 
-      // Irrespective of how it was set or selected, if all students are completed, mark as fully_updated!
-      if (total > 0 && updated.completedStudents >= total) {
+      if (field === 'verificationStatus' && value === 'fully_updated') {
+        if (total > 0 && updated.completedStudents < total) {
+          showToast(`Cannot set Fully Updated: Only ${updated.completedStudents}/${total} students completed. Status adjusted to Partially Updated.`, 'warning');
+          updated.verificationStatus = 'partially_updated';
+        }
+      }
+
+      // Enforce: if completedStudents < total, verificationStatus CANNOT be fully_updated
+      if (total > 0 && updated.completedStudents < total && updated.verificationStatus === 'fully_updated') {
+        updated.verificationStatus = 'partially_updated';
+      } else if (total > 0 && updated.completedStudents >= total) {
         updated.verificationStatus = 'fully_updated';
       }
 
@@ -161,40 +159,33 @@ const ODLists = () => {
     const total = odItem ? (odItem.totalStudents || odItem.students?.length || 0) : 0;
     const studentsList = odItem?.students || [];
 
-    // Parse registration numbers present in admin remarks (supports 23MIA2099UPDATED)
     const remarksText = form.adminRemarks || '';
-    const parsedRegs = parseRegistrationNumbersFromRemarks(remarksText);
     const cleanRemarks = remarksText.toUpperCase();
 
     const matchedStudents = studentsList.filter(s => {
       const reg = (s.registrationNumber || '').trim().toUpperCase();
-      return parsedRegs.has(reg) || cleanRemarks.includes(reg);
+      return isStudentRemarkMatched(reg, cleanRemarks, odItem?.verifiedRegistrationNumbers);
     });
     const matchedCount = matchedStudents.length;
 
     let finalStatus = form.verificationStatus;
-    let completedCount = form.completedStudents !== undefined ? parseInt(form.completedStudents, 10) : total;
+    let completedCount = form.completedStudents !== undefined ? parseInt(form.completedStudents, 10) : matchedCount;
 
-    if (finalStatus === 'fully_updated') {
-      // Must check whether ALL register numbers are present in the remarks
-      if (total > 0 && matchedCount < total) {
+    if (matchedCount > completedCount) {
+      completedCount = matchedCount;
+    }
+
+    if (total > 0 && completedCount < total) {
+      if (finalStatus === 'fully_updated') {
         finalStatus = 'partially_updated';
-        completedCount = matchedCount;
         showToast(
-          `Not all register numbers are present in remarks (${matchedCount}/${total} found). Status adjusted to Partially Updated.`,
+          `Only ${completedCount}/${total} students are updated. Status adjusted to Partially Updated.`,
           'warning'
         );
-      } else {
-        completedCount = total;
       }
-    } else if (finalStatus === 'partially_updated') {
-      if (matchedCount > 0) {
-        completedCount = matchedCount;
-      }
-      if (total > 0 && matchedCount >= total) {
-        finalStatus = 'fully_updated';
-        completedCount = total;
-      }
+    } else if (total > 0 && completedCount >= total) {
+      finalStatus = 'fully_updated';
+      completedCount = total;
     }
 
     try {
@@ -262,17 +253,11 @@ const ODLists = () => {
 
       let pendingStudents = od.students || [];
 
-      // If remarks exist, filter out students who are already verified in the remarks
-      if (od.adminRemarks && od.adminRemarks.trim()) {
-        const parsedRegs = parseRegistrationNumbersFromRemarks(od.adminRemarks);
-        const cleanRemarks = od.adminRemarks.toUpperCase();
-
-        pendingStudents = pendingStudents.filter(student => {
-          const reg = (student.registrationNumber || '').trim().toUpperCase();
-          const isVerified = parsedRegs.has(reg) || cleanRemarks.includes(reg);
-          return !isVerified;
-        });
-      }
+      // Filter out students who are already verified in remarks or cumulative verified list
+      pendingStudents = pendingStudents.filter(student => {
+        const isVerified = isStudentRemarkMatched(student.registrationNumber, od.adminRemarks, od.verifiedRegistrationNumbers);
+        return !isVerified;
+      });
 
       if (pendingStudents.length > 0) {
         pendingOdsToExport.push({
@@ -314,8 +299,8 @@ const ODLists = () => {
         );
       case 'missed_od_added':
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 px-2.5 py-1 rounded-full font-bold border border-sky-300 dark:border-sky-800">
-            Missed OD Added
+          <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2.5 py-1 rounded-full font-bold border border-yellow-250 dark:border-yellow-900/40">
+            Pending Verification
           </span>
         );
       case 'partially_updated':
@@ -583,7 +568,7 @@ const ODLists = () => {
                                         <tbody className="divide-y divide-vit-neutral-200 dark:divide-vit-neutral-700 text-vit-neutral-700 dark:text-vit-neutral-300">
                                           {sortODStudents(od.students || []).map((student, sIdx) => {
                                             const activeRemarks = form.adminRemarks !== undefined ? form.adminRemarks : (od.adminRemarks || '');
-                                            const isMatched = isStudentRemarkMatched(student.registrationNumber, activeRemarks);
+                                            const isMatched = isStudentRemarkMatched(student.registrationNumber, activeRemarks, od.verifiedRegistrationNumbers);
 
                                             return (
                                               <tr
@@ -638,14 +623,13 @@ const ODLists = () => {
                                         <div className="space-y-1">
                                           <label className="block text-[10px] font-bold text-vit-neutral-500 uppercase">Verification Status</label>
                                           <select
-                                            value={form.verificationStatus}
+                                            value={form.verificationStatus === 'missed_od_added' ? 'pending' : form.verificationStatus}
                                             onChange={(e) => handleUpdateFormState(od.id || od._id, 'verificationStatus', e.target.value)}
                                             className="w-full px-3 py-2 bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 text-xs font-semibold rounded-xl focus:ring-1 focus:ring-vit-blue outline-none"
                                           >
                                             <option value="pending">Pending Verification</option>
                                             <option value="fully_updated">Fully Updated</option>
                                             <option value="partially_updated">Partially Updated</option>
-                                            <option value="missed_od_added">Missed OD Added</option>
                                           </select>
                                         </div>
 

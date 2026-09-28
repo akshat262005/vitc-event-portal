@@ -358,16 +358,12 @@ const UnifiedDailyView = () => {
                           <span className={`text-[11px] px-2.5 py-1 rounded-full font-bold ${
                             od.verificationStatus === 'fully_updated'
                               ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                              : od.verificationStatus === 'missed_od_added'
-                              ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800'
                               : od.verificationStatus === 'partially_updated'
                               ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
                               : 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-800'
                           }`}>
                             {od.verificationStatus === 'fully_updated'
                               ? 'Fully Verified'
-                              : od.verificationStatus === 'missed_od_added'
-                              ? 'Missed OD Added'
                               : od.verificationStatus === 'partially_updated'
                               ? 'Partially Verified'
                               : 'Pending'}

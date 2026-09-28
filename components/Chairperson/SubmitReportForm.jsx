@@ -326,12 +326,10 @@ const SubmitReportForm = () => {
           </p>
         </div>
         {isEditMode && (
-          <div className={`px-4 py-2 border rounded-xl font-bold text-xs flex flex-col items-center justify-center flex-shrink-0 bg-white dark:bg-vit-neutral-950 ${
-            (3 - reportUploadsCount) > 0 ? 'border-amber-250 text-amber-600 dark:border-amber-900/50 dark:text-amber-400' : 'border-red-200 text-red-500'
-          }`}>
-            <span>Upload Limit Status</span>
+          <div className="px-4 py-2 border border-vit-blue/30 rounded-xl font-bold text-xs flex flex-col items-center justify-center flex-shrink-0 bg-white dark:bg-vit-neutral-950 text-vit-blue dark:text-sky-400">
+            <span>Edit Mode</span>
             <span className="text-[10px] text-vit-neutral-500 dark:text-vit-neutral-400 font-medium">
-              {(3 - reportUploadsCount) > 0 ? `${3 - reportUploadsCount} edit attempt(s) remaining` : '0 attempts remaining (limit reached)'}
+              Unlimited Edits Allowed
             </span>
           </div>
         )}

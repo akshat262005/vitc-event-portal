@@ -163,14 +163,15 @@ export async function PUT(request, { params }) {
       time: s.time.trim(),
     })));
 
-    const isLockedVerified = od.verificationStatus === 'fully_updated' || od.verificationStatus === 'missed_od_added';
-    let newVerificationStatus = od.verificationStatus;
+    const isLockedVerified = od.verificationStatus === 'fully_updated' || od.verificationStatus === 'partially_updated' || od.verificationStatus === 'missed_od_added';
     let newTotal = mappedStudents.length;
-    let newRemaining = od.remainingStudents;
+
+    // Track cumulative verified registration numbers
+    const verifiedSet = new Set((od.verifiedRegistrationNumbers || []).map(r => String(r).trim().toUpperCase()));
+    const originalStudents = od.students || [];
 
     if (isLockedVerified) {
       // Ensure all original students are still present
-      const originalStudents = od.students || [];
       const mappedKeys = new Set(mappedStudents.map(s => `${s.registrationNumber}_${s.date}_${s.time}`));
       
       const missingOriginal = originalStudents.find(
@@ -184,45 +185,46 @@ export async function PUT(request, { params }) {
         );
       }
 
-      // Check if new students were appended
-      if (mappedStudents.length > originalStudents.length) {
-        newVerificationStatus = 'missed_od_added';
-        newTotal = mappedStudents.length;
-        const completed = od.completedStudents || 0;
-        newRemaining = Math.max(0, newTotal - completed);
-
-        // Notify Admins
-        try {
-          const admins = await db.users.find({ role: 'Admin' });
-          for (const adm of admins) {
-            await db.notifications.create({
-              recipientRole: 'Admin',
-              recipientId: adm.id || adm._id,
-              title: 'Missed OD Added to Verified Event',
-              message: `Club ${od.clubName} added ${mappedStudents.length - originalStudents.length} missed OD student(s) to verified event "${od.eventName}". Status updated to Missed OD Added.`,
-            });
-          }
-        } catch (notifErr) {
-          console.error('Error creating admin notification for missed OD:', notifErr);
-        }
+      // If the list was previously fully updated, all original students were verified
+      if (od.verificationStatus === 'fully_updated' || (od.totalStudents > 0 && od.completedStudents >= od.totalStudents)) {
+        originalStudents.forEach(s => {
+          if (s.registrationNumber) verifiedSet.add(s.registrationNumber.trim().toUpperCase());
+        });
       }
-    } else {
-      newTotal = mappedStudents.length;
-      const completed = od.completedStudents || 0;
-      newRemaining = Math.max(0, newTotal - completed);
+    }
+
+    const completedCount = mappedStudents.filter(s => verifiedSet.has(s.registrationNumber.trim().toUpperCase())).length;
+    const remainingCount = Math.max(0, mappedStudents.length - completedCount);
+    const newVerificationStatus = remainingCount === 0 ? 'fully_updated' : (completedCount > 0 ? 'partially_updated' : 'pending');
+
+    // Notify Admins if new students were appended
+    if (mappedStudents.length > originalStudents.length) {
+      try {
+        const admins = await db.users.find({ role: 'Admin' });
+        for (const adm of admins) {
+          await db.notifications.create({
+            recipientRole: 'Admin',
+            recipientId: adm.id || adm._id,
+            title: 'Additional Students Added to OD List',
+            message: `Club ${od.clubName} added ${mappedStudents.length - originalStudents.length} student(s) to event "${od.eventName}".`,
+          });
+        }
+      } catch (notifErr) {
+        console.error('Error creating admin notification for additional OD:', notifErr);
+      }
     }
 
     const updatedOD = await db.ods.findByIdAndUpdate(id, {
       students: mappedStudents,
       totalStudents: newTotal,
-      remainingStudents: newRemaining,
+      completedStudents: completedCount,
+      remainingStudents: remainingCount,
       verificationStatus: newVerificationStatus,
+      verifiedRegistrationNumbers: Array.from(verifiedSet),
     });
 
     return NextResponse.json({
-      message: newVerificationStatus === 'missed_od_added'
-        ? 'Missed OD students added successfully. Status updated to Missed OD Added.'
-        : 'OD list updated successfully.',
+      message: 'OD list updated successfully.',
       odList: updatedOD,
     });
   } catch (error) {

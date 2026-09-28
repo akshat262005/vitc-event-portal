@@ -337,14 +337,9 @@ const ChairpersonDashboard = () => {
                                   {!isCollaboratingClub ? (
                                     <>
                                       <button
-                                        onClick={() => reportAttempts > 0 ? router.push(`/reports/edit/${report.id || report._id}`) : showToast('No report edit attempts remaining.', 'warning')}
-                                        disabled={reportAttempts <= 0}
-                                        className={`inline-flex items-center justify-center p-1.5 rounded-lg transition-colors ${
-                                          reportAttempts > 0
-                                            ? 'text-amber-605 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-955/20 cursor-pointer'
-                                            : 'text-vit-neutral-400 cursor-not-allowed opacity-50'
-                                        }`}
-                                        title={reportAttempts > 0 ? 'Edit Event Report' : 'Upload limit reached (3/3)'}
+                                        onClick={() => router.push(`/reports/edit/${report.id || report._id}`)}
+                                        className="inline-flex items-center justify-center p-1.5 rounded-lg transition-colors text-amber-605 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-955/20 cursor-pointer"
+                                        title="Edit Event Report"
                                       >
                                         <Pencil className="w-3.5 h-3.5" />
                                       </button>
@@ -362,11 +357,6 @@ const ChairpersonDashboard = () => {
                                     <span className="text-[10px] text-vit-neutral-400 font-bold italic">Read-Only</span>
                                   )}
                                 </div>
-                                {!isCollaboratingClub && (
-                                  <span className={`text-[9px] font-bold ${reportAttempts > 0 ? 'text-vit-neutral-400' : 'text-red-500 font-extrabold animate-pulse'}`}>
-                                    {reportAttempts > 0 ? `${reportAttempts} edit(s) left` : 'No edits left'}
-                                  </span>
-                                )}
                               </div>
                             );
                           })()}

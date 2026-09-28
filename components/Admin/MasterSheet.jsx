@@ -127,7 +127,7 @@ const MasterSheet = () => {
         let remarksText = r.specificRemark || r.remarks;
         if (!remarksText) {
           if (r.verificationStatus === 'fully_updated') remarksText = 'Verified Successfully';
-          else if (r.verificationStatus === 'missed_od_added') remarksText = 'Missed OD added (Verified ledger)';
+          else if (r.verificationStatus === 'missed_od_added') remarksText = 'Pending Verification';
           else if (r.verificationStatus === 'pending') remarksText = 'Pending Verification';
           else remarksText = 'No issues logged';
         }
@@ -267,7 +267,6 @@ const MasterSheet = () => {
                   <option value="pending">Pending Verification</option>
                   <option value="partially_updated">Partially Updated</option>
                   <option value="fully_updated">Fully Updated</option>
-                  <option value="missed_od_added">Missed OD Added</option>
                 </select>
               </div>
             </div>
@@ -346,17 +345,12 @@ const MasterSheet = () => {
                               Fully Updated
                             </span>
                           )}
-                          {record.verificationStatus === 'missed_od_added' && (
-                            <span className="inline-flex items-center gap-1 text-[9px] bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded-full font-bold border border-sky-300 dark:border-sky-800">
-                              Missed OD Added
-                            </span>
-                          )}
                           {record.verificationStatus === 'partially_updated' && (
                             <span className="inline-flex items-center gap-1 text-[9px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-450 px-2 py-0.5 rounded-full font-bold border border-orange-200 dark:border-orange-900/40">
                               Partially Updated
                             </span>
                           )}
-                          {record.verificationStatus === 'pending' && (
+                          {(record.verificationStatus === 'pending' || record.verificationStatus === 'missed_od_added') && (
                             <span className="inline-flex items-center gap-1 text-[9px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-450 px-2 py-0.5 rounded-full font-bold border border-yellow-200 dark:border-yellow-900/40">
                               Pending Verification
                             </span>
@@ -374,12 +368,7 @@ const MasterSheet = () => {
                                   Verified successfully
                                 </span>
                               )}
-                              {record.verificationStatus === 'missed_od_added' && (
-                                <span className="inline-block p-1.5 bg-sky-50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300 text-[10px] font-medium rounded border border-sky-200 dark:border-sky-800">
-                                  Missed OD added (Verified ledger)
-                                </span>
-                              )}
-                              {record.verificationStatus === 'pending' && (
+                              {(record.verificationStatus === 'pending' || record.verificationStatus === 'missed_od_added') && (
                                 <span className="inline-block p-1.5 bg-vit-neutral-50 dark:bg-vit-neutral-900 text-vit-neutral-450 text-[10px] font-medium rounded border border-vit-neutral-200 dark:border-vit-neutral-750">
                                   Awaiting admin review
                                 </span>

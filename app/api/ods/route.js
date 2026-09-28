@@ -98,10 +98,25 @@ export async function GET(request) {
       const completed = od.completedStudents || 0;
       const remaining = od.remainingStudents !== undefined ? od.remainingStudents : Math.max(0, total - completed);
       const sortedStudents = od.students ? sortODStudents(od.students) : [];
-      if (total > 0 && (completed >= total || remaining === 0)) {
-        return { ...od, students: sortedStudents, verificationStatus: 'fully_updated', remainingStudents: 0 };
+      let status = od.verificationStatus || 'pending';
+      if (status === 'missed_od_added') {
+        status = 'pending';
       }
-      return { ...od, students: sortedStudents };
+      if (total > 0) {
+        if (completed >= total || remaining === 0) {
+          status = 'fully_updated';
+        } else if (completed > 0 || status === 'fully_updated') {
+          status = 'partially_updated';
+        }
+      }
+      return {
+        ...od,
+        students: sortedStudents,
+        totalStudents: total,
+        completedStudents: completed,
+        remainingStudents: remaining,
+        verificationStatus: status,
+      };
     };
 
     if (auth.user.role === 'Chairperson') {
