@@ -286,7 +286,7 @@ const ChairpersonDashboard = () => {
                             {isCollaboratingClub && (
                               <div className="flex flex-col gap-0.5">
                                 <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/20 px-1.5 py-0.5 rounded w-max">
-                                  🤝 Collaboration Event
+                                  Collaboration Event
                                 </span>
                                 <span className="text-[9px] text-vit-neutral-450 font-bold">
                                   Primary Club: {report.clubName}
@@ -309,7 +309,7 @@ const ChairpersonDashboard = () => {
                               ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400'
                               : 'bg-slate-50 text-slate-600 dark:bg-slate-900/20 dark:text-slate-400'
                           }`}>
-                            {report.isCollaboration ? '🤝 Collaboration' : 'Individual'}
+                            {report.isCollaboration ? 'Collaboration' : 'Individual'}
                           </span>
                         </td>
                         <td className="px-6 py-4 font-semibold text-vit-neutral-700 dark:text-vit-neutral-350 truncate max-w-[150px]">
@@ -348,13 +348,15 @@ const ChairpersonDashboard = () => {
                                       >
                                         <Pencil className="w-3.5 h-3.5" />
                                       </button>
-                                      <button
-                                        onClick={() => handleDeleteReport(report.id || report._id, report.eventName)}
-                                        className="inline-flex items-center justify-center p-1.5 text-red-650 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-955/20 rounded-lg transition-colors cursor-pointer"
-                                        title="Delete Event Report"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
+                                      {!(linkedOD && (linkedOD.verificationStatus === 'fully_updated' || linkedOD.verificationStatus === 'missed_od_added' || (linkedOD.completedStudents || 0) > 0)) && (
+                                        <button
+                                          onClick={() => handleDeleteReport(report.id || report._id, report.eventName)}
+                                          className="inline-flex items-center justify-center p-1.5 text-red-650 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-955/20 rounded-lg transition-colors cursor-pointer"
+                                          title="Delete Event Report"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      )}
                                     </>
                                   ) : (
                                     <span className="text-[10px] text-vit-neutral-400 font-bold italic">Read-Only</span>
@@ -392,22 +394,17 @@ const ChairpersonDashboard = () => {
                                         <>
                                           {oStatus === 'fully_updated' && (
                                             <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-250 dark:border-emerald-900/40">
-                                              🟢 Fully Updated
+                                              Fully Updated
                                             </span>
                                           )}
-                                          {oStatus === 'missed_od_added' && (
-                                            <span className="inline-flex items-center gap-1 text-[10px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full font-bold border border-pink-300 dark:border-pink-800">
-                                              🌸 Missed OD Added
+                                          {(oStatus === 'missed_od_added' || oStatus === 'pending') && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full font-bold border border-yellow-250 dark:border-yellow-900/40">
+                                              Pending Verification
                                             </span>
                                           )}
                                           {oStatus === 'partially_updated' && (
                                             <span className="inline-flex items-center gap-1 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full font-bold border border-orange-250 dark:border-orange-900/40">
-                                              🟠 Partially Updated
-                                            </span>
-                                          )}
-                                          {oStatus === 'pending' && (
-                                            <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2 py-0.5 rounded-full font-bold border border-yellow-250 dark:border-yellow-900/40">
-                                              🟡 Pending Verification
+                                              Partially Updated
                                             </span>
                                           )}
                                         </>
@@ -544,7 +541,7 @@ const ChairpersonDashboard = () => {
                               <div className="mb-5 p-4 bg-blue-50/50 dark:bg-blue-950/10 border border-blue-150 dark:border-blue-900/30 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs text-blue-800 dark:text-blue-300">
                                 <div>
                                   <p className="font-bold text-sm flex items-center gap-1.5 mb-1 text-blue-900 dark:text-blue-200">
-                                    <span>🤝 Collaboration Event</span>
+                                    <span>Collaboration Event</span>
                                   </p>
                                   <p className="text-vit-neutral-500 font-semibold text-[11px]">
                                     This event is a collaboration. Your club has read-only access.
@@ -598,10 +595,10 @@ const ChairpersonDashboard = () => {
                                       <div className="flex justify-between items-center text-xs">
                                         <span className="text-vit-neutral-500 font-medium">Status:</span>
                                         <span>
-                                          {status === 'fully_updated' && '🟢 Fully Updated'}
-                                          {status === 'missed_od_added' && '🌸 Missed OD Added'}
-                                          {status === 'partially_updated' && '🟠 Partially Updated'}
-                                          {status === 'pending' && '🟡 Pending Verification'}
+                                          {status === 'fully_updated' && 'Fully Updated'}
+                                          {(status === 'missed_od_added' || status === 'pending') && 'Pending Verification'}
+                                          {status === 'partially_updated' && 'Partially Updated'}
+                                          {status === 'pending' && 'Pending Verification'}
                                         </span>
                                       </div>
                                       

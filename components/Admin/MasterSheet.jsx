@@ -264,10 +264,10 @@ const MasterSheet = () => {
                   className="w-full px-3 py-2 text-xs bg-vit-neutral-50 dark:bg-vit-neutral-900 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-1 focus:ring-vit-blue text-vit-neutral-500 dark:text-white font-semibold"
                 >
                   <option value="">All Verification Statuses</option>
-                  <option value="pending">🟡 Pending Verification</option>
-                  <option value="partially_updated">🟠 Partially Updated</option>
-                  <option value="fully_updated">🟢 Fully Updated</option>
-                  <option value="missed_od_added">🌸 Missed OD Added</option>
+                  <option value="pending">Pending Verification</option>
+                  <option value="partially_updated">Partially Updated</option>
+                  <option value="fully_updated">Fully Updated</option>
+                  <option value="missed_od_added">Missed OD Added</option>
                 </select>
               </div>
             </div>
@@ -343,22 +343,22 @@ const MasterSheet = () => {
                         <td className="px-6 py-4 text-center">
                           {record.verificationStatus === 'fully_updated' && (
                             <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 px-2 py-0.5 rounded-full font-bold border border-emerald-200 dark:border-emerald-900/40">
-                              🟢 Fully Updated
+                              Fully Updated
                             </span>
                           )}
                           {record.verificationStatus === 'missed_od_added' && (
-                            <span className="inline-flex items-center gap-1 text-[9px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2 py-0.5 rounded-full font-bold border border-pink-300 dark:border-pink-800">
-                              🌸 Missed OD Added
+                            <span className="inline-flex items-center gap-1 text-[9px] bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded-full font-bold border border-sky-300 dark:border-sky-800">
+                              Missed OD Added
                             </span>
                           )}
                           {record.verificationStatus === 'partially_updated' && (
                             <span className="inline-flex items-center gap-1 text-[9px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-450 px-2 py-0.5 rounded-full font-bold border border-orange-200 dark:border-orange-900/40">
-                              🟠 Partially Updated
+                              Partially Updated
                             </span>
                           )}
                           {record.verificationStatus === 'pending' && (
                             <span className="inline-flex items-center gap-1 text-[9px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-450 px-2 py-0.5 rounded-full font-bold border border-yellow-200 dark:border-yellow-900/40">
-                              🟡 Pending Verification
+                              Pending Verification
                             </span>
                           )}
                         </td>
@@ -375,7 +375,7 @@ const MasterSheet = () => {
                                 </span>
                               )}
                               {record.verificationStatus === 'missed_od_added' && (
-                                <span className="inline-block p-1.5 bg-pink-50 dark:bg-pink-950/20 text-pink-700 dark:text-pink-300 text-[10px] font-medium rounded border border-pink-200 dark:border-pink-800">
+                                <span className="inline-block p-1.5 bg-sky-50 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300 text-[10px] font-medium rounded border border-sky-200 dark:border-sky-800">
                                   Missed OD added (Verified ledger)
                                 </span>
                               )}

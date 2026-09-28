@@ -358,18 +358,14 @@ const UploadODForm = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-vit-navy dark:text-white">
-            {isFullyUpdated
-              ? 'Add Missed OD Students (Verified Ledger)'
-              : isResubmitMode
+            {isResubmitMode
               ? 'Resubmit Corrected OD List'
               : isEditMode
               ? 'Edit On Duty (OD) Student Ledger'
               : 'Upload On Duty (OD) Student Ledger'}
           </h2>
           <p className="text-sm text-vit-neutral-500 dark:text-vit-neutral-400 mt-1">
-            {isFullyUpdated
-              ? 'This event OD list is verified. Append additional students who were missed in the original submission.'
-              : isResubmitMode
+            {isResubmitMode
               ? 'Upload the revised Excel sheet containing corrected student details.'
               : isEditMode
               ? 'Modify and update student details for academic On-Duty approval.'
@@ -388,23 +384,7 @@ const UploadODForm = () => {
         )}
       </div>
 
-      {/* Verified Append-Only Pink Banner */}
-      {isFullyUpdated && (
-        <div className="bg-pink-50 dark:bg-pink-950/30 border border-pink-300 dark:border-pink-800 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-          <span className="text-2xl shrink-0">🌸</span>
-          <div>
-            <h4 className="text-sm font-bold text-pink-800 dark:text-pink-300 flex items-center gap-2">
-              <span>Verified OD Ledger — Append Only Mode</span>
-              <span className="text-[10px] bg-pink-200/60 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
-                Missed ODs Only
-              </span>
-            </h4>
-            <p className="text-xs text-pink-700 dark:text-pink-300 mt-1 leading-relaxed">
-              This OD list has been verified by Admin. The existing <strong>{initialStudentsCount} student record(s)</strong> are permanently locked and cannot be edited or deleted. You can only append additional students who were missed. Submitting additions will mark the status as <strong>&quot;Missed OD Added&quot;</strong> in pink.
-            </p>
-          </div>
-        </div>
-      )}
+
 
       {unlockedEvents.length === 0 && !isEditMode ? (
         <div className="glass-panel p-12 text-center text-vit-neutral-500 space-y-4">
@@ -431,21 +411,7 @@ const UploadODForm = () => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {isEditMode && (
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
-                    OD Request Type
-                  </label>
-                  <select
-                    value={requestType}
-                    disabled
-                    className="w-full px-4 py-3 bg-vit-neutral-100 dark:bg-vit-neutral-800 border border-vit-neutral-200 dark:border-vit-neutral-700 rounded-xl outline-none focus:ring-2 focus:ring-vit-blue focus:border-transparent text-sm font-medium disabled:opacity-75"
-                  >
-                    <option value="post_event">Post-Event Report</option>
-                    <option value="pre_event">Pre-Event Operation</option>
-                  </select>
-                </div>
-              )}
+              
 
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-vit-neutral-500 dark:text-vit-neutral-400 mb-2">
@@ -653,7 +619,7 @@ const UploadODForm = () => {
                         <td className="px-6 py-3 text-right">
                           {isFullyUpdated && student._isOriginal ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-md border border-emerald-250 dark:border-emerald-800 select-none">
-                              🔒 Verified
+                              Verified
                             </span>
                           ) : (
                             <button

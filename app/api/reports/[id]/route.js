@@ -95,8 +95,8 @@ export async function PUT(request, { params }) {
     if (duplicateReport) {
       const submittingClubName = duplicateReport.clubName;
       const displayMsg = submittingClubName.toLowerCase().trim() === targetClubName.toLowerCase().trim()
-        ? `⚠️ An Event Report for "${targetEventName}" on ${targetEventDate} has already been submitted by your club. Please use the "Modify Report" feature to update the existing report instead of creating a duplicate submission.`
-        : `⚠️ An Event Report for "${targetEventName}" on ${targetEventDate} has already been submitted by the primary club, ${submittingClubName}. Since your club is a collaborator, you can view the report on your dashboard.`;
+        ? `An Event Report for "${targetEventName}" on ${targetEventDate} has already been submitted by your club. Please use the "Modify Report" feature to update the existing report instead of creating a duplicate submission.`
+        : `An Event Report for "${targetEventName}" on ${targetEventDate} has already been submitted by the primary club, ${submittingClubName}. Since your club is a collaborator, you can view the report on your dashboard.`;
       return jsonError(displayMsg, 400);
     }
 
@@ -181,6 +181,14 @@ export async function DELETE(request, { params }) {
     const eventId = report.id || report._id;
     const linkedOd = await db.ods.findOne({ eventId: eventId?.toString?.() || eventId });
     if (linkedOd) {
+      if (auth.user.role === 'Chairperson') {
+        const isOdUpdated = linkedOd.verificationStatus === 'fully_updated' ||
+          linkedOd.verificationStatus === 'missed_od_added' ||
+          (linkedOd.completedStudents || 0) > 0;
+        if (isOdUpdated) {
+          return jsonError('This event report cannot be deleted because its OD list has already been verified/updated by Admin.', 403);
+        }
+      }
       await db.ods.findByIdAndDelete(linkedOd.id || linkedOd._id);
     }
 

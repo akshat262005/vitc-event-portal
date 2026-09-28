@@ -245,8 +245,8 @@ const SubmitReportForm = () => {
 
       if (duplicate) {
         const displayMsg = duplicate.clubName.toLowerCase().trim() === clubName.toLowerCase().trim()
-          ? `⚠️ An Event Report for "${eventName}" on ${eventDate} has already been submitted by your club. Please use the "Modify Report" feature to update the existing report instead of creating a duplicate submission.`
-          : `⚠️ An Event Report for "${eventName}" on ${eventDate} has already been submitted by the primary club, ${duplicate.clubName}. Since your club is a collaborator, you can view the report on your dashboard.`;
+          ? `An Event Report for "${eventName}" on ${eventDate} has already been submitted by your club. Please use the "Modify Report" feature to update the existing report instead of creating a duplicate submission.`
+          : `An Event Report for "${eventName}" on ${eventDate} has already been submitted by the primary club, ${duplicate.clubName}. Since your club is a collaborator, you can view the report on your dashboard.`;
         showToast(displayMsg, 'error');
         setSubmitting(false);
         return;
@@ -602,7 +602,7 @@ const SubmitReportForm = () => {
                 </span>
               </label>
               <p className="text-[11px] text-vit-neutral-500 dark:text-vit-neutral-400 mt-1 pl-6">
-                💡 <strong>Important:</strong> If you did not collaborate with other clubs, leave this box unticked. If ticked, you must select at least one collaborating club below.
+                <strong>Important:</strong> If you did not collaborate with other clubs, leave this box unticked. If ticked, you must select at least one collaborating club below.
               </p>
 
               {isCollaboration && (
@@ -613,7 +613,7 @@ const SubmitReportForm = () => {
                     </span>
                     {collaborationClubs.length === 0 && (
                       <span className="text-[11px] font-bold text-red-500 animate-pulse">
-                        ⚠️ At least one club must be selected
+                        At least one club must be selected
                       </span>
                     )}
                   </div>

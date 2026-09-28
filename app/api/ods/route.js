@@ -108,25 +108,21 @@ export async function GET(request) {
       const chairperson = await db.users.findById(auth.user.id);
       if (!chairperson) return jsonError('User not found.', 404);
 
-      const allOds = await db.ods.find({});
-      const allReports = await db.reports.find({});
+      const collabReports = await db.reports.find(
+        { isCollaboration: true, collaborationClubs: chairperson.clubName },
+        { _id: 1, id: 1 }
+      );
+      const collabEventIds = collabReports.map(r => r.id || r._id).filter(Boolean);
+      const collabEventIdStrings = collabEventIds.map(id => id.toString());
+      const allCollabIds = [...new Set([...collabEventIds, ...collabEventIdStrings])];
 
-      const filteredOds = allOds
-        .map(normalizeOD)
-        .filter(od => {
-          const odClubId = od.clubId?._id ? od.clubId._id.toString() : od.clubId?.toString();
-          const isOwner = odClubId === chairperson.clubId.toString();
-          if (isOwner) return true;
-
-          if (od.requestType !== 'pre_event' && od.eventId) {
-            const report = allReports.find(r => (r.id || r._id).toString() === od.eventId.toString());
-            if (report && report.isCollaboration && report.collaborationClubs && report.collaborationClubs.includes(chairperson.clubName)) {
-              return true;
-            }
-          }
-          return false;
-        });
-      return NextResponse.json(filteredOds);
+      const ods = await db.ods.find({
+        $or: [
+          { clubId: chairperson.clubId },
+          { eventId: { $in: allCollabIds } }
+        ]
+      });
+      return NextResponse.json(ods.map(normalizeOD));
     } else {
       const ods = await db.ods.find({});
       return NextResponse.json(ods.map(normalizeOD));

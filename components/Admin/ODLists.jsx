@@ -159,19 +159,49 @@ const ODLists = () => {
 
     const odItem = ods.find(o => (o.id || o._id) === odId);
     const total = odItem ? (odItem.totalStudents || odItem.students?.length || 0) : 0;
+    const studentsList = odItem?.students || [];
+
+    // Parse registration numbers present in admin remarks (supports 23MIA2099UPDATED)
+    const remarksText = form.adminRemarks || '';
+    const parsedRegs = parseRegistrationNumbersFromRemarks(remarksText);
+    const cleanRemarks = remarksText.toUpperCase();
+
+    const matchedStudents = studentsList.filter(s => {
+      const reg = (s.registrationNumber || '').trim().toUpperCase();
+      return parsedRegs.has(reg) || cleanRemarks.includes(reg);
+    });
+    const matchedCount = matchedStudents.length;
 
     let finalStatus = form.verificationStatus;
-    if (total > 0 && (form.completedStudents >= total || (total - form.completedStudents) === 0)) {
-      finalStatus = 'fully_updated';
-    } else if (finalStatus === 'fully_updated' && form.completedStudents < total) {
-      finalStatus = 'partially_updated';
+    let completedCount = form.completedStudents !== undefined ? parseInt(form.completedStudents, 10) : total;
+
+    if (finalStatus === 'fully_updated') {
+      // Must check whether ALL register numbers are present in the remarks
+      if (total > 0 && matchedCount < total) {
+        finalStatus = 'partially_updated';
+        completedCount = matchedCount;
+        showToast(
+          `Not all register numbers are present in remarks (${matchedCount}/${total} found). Status adjusted to Partially Updated.`,
+          'warning'
+        );
+      } else {
+        completedCount = total;
+      }
+    } else if (finalStatus === 'partially_updated') {
+      if (matchedCount > 0) {
+        completedCount = matchedCount;
+      }
+      if (total > 0 && matchedCount >= total) {
+        finalStatus = 'fully_updated';
+        completedCount = total;
+      }
     }
 
     try {
       const response = await api.put(`/ods/${odId}/verify`, {
         verificationStatus: finalStatus,
-        completedStudents: form.completedStudents,
-        adminRemarks: form.adminRemarks
+        completedStudents: completedCount,
+        adminRemarks: remarksText
       });
 
       showToast('OD Verification status updated successfully!', 'success');
@@ -183,8 +213,8 @@ const ODLists = () => {
             ...o,
             ...response.data.odList,
             verificationStatus: finalStatus,
-            completedStudents: form.completedStudents,
-            remainingStudents: Math.max(0, total - form.completedStudents)
+            completedStudents: completedCount,
+            remainingStudents: Math.max(0, total - completedCount)
           };
         }
         return o;
@@ -194,7 +224,8 @@ const ODLists = () => {
         ...prev,
         [odId]: {
           ...prev[odId],
-          verificationStatus: finalStatus
+          verificationStatus: finalStatus,
+          completedStudents: completedCount
         }
       }));
     } catch (err) {
@@ -216,25 +247,53 @@ const ODLists = () => {
   };
 
   const handleDownloadOverallPendingODs = async () => {
-    const pendingOds = ods.filter(od => {
+    const pendingOdsToExport = [];
+
+    ods.forEach(od => {
       const total = od.totalStudents || od.students?.length || 0;
       const completed = od.completedStudents || 0;
       const remaining = od.remainingStudents !== undefined ? od.remainingStudents : Math.max(0, total - completed);
       const isDone = total > 0 && (completed >= total || remaining === 0);
       const status = isDone ? 'fully_updated' : (od.verificationStatus || 'pending');
-      return status !== 'fully_updated';
+
+      if (status === 'fully_updated' && remaining === 0) {
+        return;
+      }
+
+      let pendingStudents = od.students || [];
+
+      // If remarks exist, filter out students who are already verified in the remarks
+      if (od.adminRemarks && od.adminRemarks.trim()) {
+        const parsedRegs = parseRegistrationNumbersFromRemarks(od.adminRemarks);
+        const cleanRemarks = od.adminRemarks.toUpperCase();
+
+        pendingStudents = pendingStudents.filter(student => {
+          const reg = (student.registrationNumber || '').trim().toUpperCase();
+          const isVerified = parsedRegs.has(reg) || cleanRemarks.includes(reg);
+          return !isVerified;
+        });
+      }
+
+      if (pendingStudents.length > 0) {
+        pendingOdsToExport.push({
+          ...od,
+          students: pendingStudents,
+          totalStudents: pendingStudents.length
+        });
+      }
     });
 
-    if (pendingOds.length === 0) {
-      showToast('No pending OD events found to export.', 'warning');
+    if (pendingOdsToExport.length === 0) {
+      showToast('No pending OD students found to export.', 'warning');
       return;
     }
 
     try {
       const xlsx = await import('xlsx');
       const fileName = `Overall_Pending_OD_Slots_${new Date().toISOString().substring(0, 10)}.xlsx`;
-      exportConsolidatedODExcel(pendingOds, fileName, xlsx);
-      showToast(`Consolidated Pending OD Report exported successfully! (${pendingOds.length} pending events, 3 Sheets)`, 'success');
+      exportConsolidatedODExcel(pendingOdsToExport, fileName, xlsx);
+      const totalPendingCount = pendingOdsToExport.reduce((acc, curr) => acc + curr.students.length, 0);
+      showToast(`Consolidated Pending OD Report exported successfully! (${totalPendingCount} pending students across ${pendingOdsToExport.length} events, 3 Sheets)`, 'success');
     } catch (err) {
       console.error('Failed to generate Pending OD Report Excel:', err);
       showToast('Failed to export Pending OD Report.', 'error');
@@ -250,26 +309,26 @@ const ODLists = () => {
       case 'fully_updated':
         return (
           <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-200 dark:border-emerald-900/40">
-            🟢 Fully Updated
+            Fully Updated
           </span>
         );
       case 'missed_od_added':
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 px-2.5 py-1 rounded-full font-bold border border-pink-300 dark:border-pink-800">
-            🌸 Missed OD Added
+          <span className="inline-flex items-center gap-1 text-[10px] bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 px-2.5 py-1 rounded-full font-bold border border-sky-300 dark:border-sky-800">
+            Missed OD Added
           </span>
         );
       case 'partially_updated':
         return (
           <span className="inline-flex items-center gap-1 text-[10px] bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full font-bold border border-orange-250 dark:border-orange-900/40">
-            🟠 Partially Updated
+            Partially Updated
           </span>
         );
       case 'pending':
       default:
         return (
           <span className="inline-flex items-center gap-1 text-[10px] bg-yellow-50 dark:bg-yellow-950/20 text-yellow-600 dark:text-yellow-400 px-2.5 py-1 rounded-full font-bold border border-yellow-250 dark:border-yellow-900/40">
-            🟡 Pending Verification
+            Pending Verification
           </span>
         );
     }
@@ -387,7 +446,7 @@ const ODLists = () => {
                 <option value="pending">Pending Verification</option>
                 <option value="fully_updated">Fully Updated</option>
                 <option value="partially_updated">Partially Updated</option>
-                <option value="missed_od_added">Missed OD Added</option>
+                
               </select>
 
               {/* Month filter */}
@@ -550,11 +609,11 @@ const ODLists = () => {
                                                 <td className="px-4 py-2 text-center">
                                                   {isMatched ? (
                                                     <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold border border-emerald-300 dark:border-emerald-800">
-                                                      🟢 Matched (Green)
+                                                      Matched (Green)
                                                     </span>
                                                   ) : (
                                                     <span className="inline-flex items-center gap-1 text-[9px] bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold border border-rose-300 dark:border-rose-800">
-                                                      🔴 Marked Red
+                                                      Marked Red
                                                     </span>
                                                   )}
                                                 </td>
@@ -626,20 +685,17 @@ const ODLists = () => {
                                               />
                                               {/* Live Remarks Parser Feedback */}
                                               {(() => {
-                                                const regNoRegex = /\b\d{2}[a-zA-Z]{3,4}\d{4}\b/g;
-                                                const matched = form.adminRemarks ? form.adminRemarks.match(regNoRegex) : null;
-                                                if (matched && matched.length > 0) {
-                                                  const lines = form.adminRemarks.split('\n');
-                                                  const completedRegs = [];
-                                                  lines.forEach(line => {
-                                                    const lineMatch = line.match(/\b\d{2}[a-zA-Z]{3,4}\d{4}\b/);
-                                                    if (lineMatch) {
-                                                      const reg = lineMatch[0].toUpperCase();
-                                                      if (!completedRegs.includes(reg)) {
-                                                        completedRegs.push(reg);
-                                                      }
-                                                    }
-                                                  });
+                                                const remarks = form.adminRemarks || '';
+                                                const regNoRegex = /\b(\d{2}[a-zA-Z]{2,5}\d{4})(?!\d)/gi;
+                                                const completedRegs = [];
+                                                let m;
+                                                while ((m = regNoRegex.exec(remarks)) !== null) {
+                                                  const reg = m[1].toUpperCase();
+                                                  if (!completedRegs.includes(reg)) {
+                                                    completedRegs.push(reg);
+                                                  }
+                                                }
+                                                if (completedRegs.length > 0) {
 
                                                   if (completedRegs.length > 0) {
                                                     return (

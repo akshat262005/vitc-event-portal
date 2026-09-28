@@ -12,13 +12,13 @@ export async function GET(request) {
       const chairperson = await db.users.findById(auth.user.id);
       if (!chairperson) return jsonError('User not found.', 404);
       
-      const allReports = await db.reports.find({});
-      const filteredReports = allReports.filter(report => {
-        const reportClubId = report.clubId?._id ? report.clubId._id.toString() : report.clubId?.toString();
-        const isOwner = reportClubId === chairperson.clubId.toString();
-        const isCollaborator = report.isCollaboration && report.collaborationClubs && report.collaborationClubs.includes(chairperson.clubName);
-        return isOwner || isCollaborator;
-      });
+      const filter = {
+        $or: [
+          { clubId: chairperson.clubId },
+          { isCollaboration: true, collaborationClubs: chairperson.clubName }
+        ]
+      };
+      const filteredReports = await db.reports.find(filter);
       return NextResponse.json(filteredReports);
     } else {
       const reports = await db.reports.find({});
@@ -84,7 +84,7 @@ export async function POST(request) {
     // Duplicate Event Validation
     const normalizeName = (name) => name ? name.trim().toLowerCase().replace(/\s+/g, ' ') : '';
     const normalizedInputName = normalizeName(eventName);
-    const existingReports = await db.reports.find({});
+    const existingReports = await db.reports.find({ eventDate });
     
     const duplicateReport = existingReports.find(report => {
       if (report.eventDate !== eventDate) return false;
@@ -111,8 +111,8 @@ export async function POST(request) {
     if (duplicateReport) {
       const submittingClubName = duplicateReport.clubName;
       const displayMsg = submittingClubName.toLowerCase().trim() === clubName.toLowerCase().trim()
-        ? `⚠️ An Event Report for "${eventName}" on ${eventDate} has already been submitted by your club. Please use the "Modify Report" feature to update the existing report instead of creating a duplicate submission.`
-        : `⚠️ An Event Report for "${eventName}" on ${eventDate} has already been submitted by the primary club, ${submittingClubName}. Since your club is a collaborator, you can view the report on your dashboard.`;
+        ? `An Event Report for "${eventName}" on ${eventDate} has already been submitted by your club. Please use the "Modify Report" feature to update the existing report instead of creating a duplicate submission.`
+        : `An Event Report for "${eventName}" on ${eventDate} has already been submitted by the primary club, ${submittingClubName}. Since your club is a collaborator, you can view the report on your dashboard.`;
       return jsonError(displayMsg, 400);
     }
 

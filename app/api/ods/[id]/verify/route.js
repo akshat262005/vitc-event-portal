@@ -15,7 +15,7 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const { verificationStatus, completedStudents, adminRemarks } = body;
 
-    if (!['pending', 'fully_updated', 'partially_updated', 'missed_od_added'].includes(verificationStatus)) {
+    if (!['pending', 'fully_updated', 'partially_updated'].includes(verificationStatus)) {
       return jsonError('Invalid verification status.', 400);
     }
 
@@ -34,20 +34,50 @@ export async function PUT(request, { params }) {
     let finalVerificationStatus = verificationStatus;
 
     if (verificationStatus === 'fully_updated' || verificationStatus === 'partially_updated') {
-      completed = completedStudents !== undefined ? parseInt(completedStudents, 10) : total;
-      if (isNaN(completed) || completed < 0 || completed > total) {
-        return jsonError(`Completed students must be a number between 0 and ${total}.`, 400);
-      }
-      remaining = total - completed;
       if (!remarks.trim()) {
         return jsonError('Remarks are required for verification.', 400);
       }
 
-      // If all students are completed, automatically mark as fully_updated irrespective of partial selection
-      if (total > 0 && (completed >= total || remaining === 0)) {
-        finalVerificationStatus = 'fully_updated';
-      } else if (finalVerificationStatus === 'fully_updated' && completed < total) {
-        finalVerificationStatus = 'partially_updated';
+      // Robust extraction supporting 23MIA2099UPDATED, 23BCE1001, etc.
+      const cleanRemarks = String(remarks).toUpperCase();
+      const studentsList = odList.students || [];
+      const regNoRegex = /\b(\d{2}[a-zA-Z]{2,5}\d{4})(?!\d)/gi;
+      const parsedRegs = new Set();
+      let match;
+      while ((match = regNoRegex.exec(cleanRemarks)) !== null) {
+        if (match[1]) parsedRegs.add(match[1].toUpperCase());
+      }
+
+      const matchedStudents = studentsList.filter(s => {
+        const r = (s.registrationNumber || '').trim().toUpperCase();
+        return parsedRegs.has(r) || cleanRemarks.includes(r);
+      });
+      const matchedCount = matchedStudents.length;
+
+      if (verificationStatus === 'fully_updated') {
+        // Enforce check: All registration numbers must be present
+        if (total > 0 && matchedCount < total) {
+          finalVerificationStatus = 'partially_updated';
+          completed = matchedCount;
+          remaining = total - matchedCount;
+        } else {
+          finalVerificationStatus = 'fully_updated';
+          completed = total;
+          remaining = 0;
+        }
+      } else if (verificationStatus === 'partially_updated') {
+        if (matchedCount > 0) {
+          completed = matchedCount;
+          remaining = total - matchedCount;
+        } else {
+          completed = completedStudents !== undefined ? parseInt(completedStudents, 10) : 0;
+          remaining = total - completed;
+        }
+        if (total > 0 && matchedCount >= total) {
+          finalVerificationStatus = 'fully_updated';
+          completed = total;
+          remaining = 0;
+        }
       }
     } else {
       completed = 0;

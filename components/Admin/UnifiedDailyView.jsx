@@ -299,11 +299,11 @@ const UnifiedDailyView = () => {
                       <p className="col-span-2"><strong>Student Coordinator:</strong> {report.studentCoordinator}</p>
                       {report.studentCoordinatorContact && <p className="col-span-2"><strong>Coordinator Contact:</strong> {report.studentCoordinatorContact}</p>}
                       {report.isCollaboration && report.collaborationClubs && report.collaborationClubs.length > 0 && (
-                        <p className="col-span-2 text-vit-blue font-semibold">🤝 <strong>Collaboration:</strong> {report.collaborationClubs.join(', ')}</p>
+                        <p className="col-span-2 text-vit-blue font-semibold"><strong>Collaboration:</strong> {report.collaborationClubs.join(', ')}</p>
                       )}
                       {report.isSponsored && (
                         <p className="col-span-2 text-emerald-600 dark:text-emerald-400 font-semibold">
-                          💰 <strong>Sponsored:</strong> {report.sponsorName} (₹{report.sponsorAmount?.toLocaleString('en-IN') || 0})
+                          <strong>Sponsored:</strong> {report.sponsorName} (₹{report.sponsorAmount?.toLocaleString('en-IN') || 0})
                         </p>
                       )}
                       <p className="col-span-2"><strong>Event Outcome:</strong> {report.outcome}</p>
@@ -359,18 +359,18 @@ const UnifiedDailyView = () => {
                             od.verificationStatus === 'fully_updated'
                               ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                               : od.verificationStatus === 'missed_od_added'
-                              ? 'bg-pink-100 dark:bg-pink-950/40 text-pink-700 dark:text-pink-300 border border-pink-300 dark:border-pink-800'
+                              ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800'
                               : od.verificationStatus === 'partially_updated'
                               ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
                               : 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-800'
                           }`}>
                             {od.verificationStatus === 'fully_updated'
-                              ? '✓ Fully Verified'
+                              ? 'Fully Verified'
                               : od.verificationStatus === 'missed_od_added'
-                              ? '🌸 Missed OD Added'
+                              ? 'Missed OD Added'
                               : od.verificationStatus === 'partially_updated'
-                              ? '⚠ Partially Verified'
-                              : '⏳ Pending'}
+                              ? 'Partially Verified'
+                              : 'Pending'}
                           </span>
                           <span className="text-xs bg-vit-sky text-vit-blue dark:bg-vit-blue/20 dark:text-sky-300 px-2.5 py-1 rounded-full font-bold">
                             {od.students?.length || od.totalStudents || 0} Students
@@ -446,11 +446,11 @@ const UnifiedDailyView = () => {
                                   <td className="px-4 py-2 text-center">
                                     {isMatched ? (
                                       <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold border border-emerald-300 dark:border-emerald-800">
-                                        🟢 Matched (Green)
+                                        Matched (Green)
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 text-[9px] bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold border border-rose-300 dark:border-rose-800">
-                                        🔴 Marked Red
+                                        Marked Red
                                       </span>
                                     )}
                                   </td>

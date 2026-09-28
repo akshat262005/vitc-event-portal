@@ -397,7 +397,7 @@ const ReportsList = () => {
                           </td>
                           <td className="px-6 py-4 font-semibold">
                             {report.hasOD ? (
-                              <span className="text-emerald-600 dark:text-emerald-400">✓ OD Uploaded</span>
+                              <span className="text-emerald-600 dark:text-emerald-400">OD Uploaded</span>
                             ) : (
                               <span className="text-amber-600 dark:text-amber-500 flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5 animate-pulse" />
@@ -440,7 +440,7 @@ const ReportsList = () => {
                                   <p><strong>Number of Participants:</strong> {report.numberOfParticipants} Students</p>
                                   {report.isCollaboration && report.collaborationClubs && report.collaborationClubs.length > 0 && (
                                     <div className="mt-2 p-2.5 bg-vit-blue/5 border border-vit-blue/20 rounded-xl space-y-1 text-[10px]">
-                                      <p className="text-vit-blue font-bold text-[9px] uppercase tracking-wider mb-1">🤝 Collaboration Details</p>
+                                      <p className="text-vit-blue font-bold text-[9px] uppercase tracking-wider mb-1">Collaboration Details</p>
                                       <p className="text-vit-neutral-700 dark:text-vit-neutral-300 font-semibold mb-1">
                                         <strong>Primary Club:</strong> {report.clubName}
                                       </p>
@@ -454,7 +454,7 @@ const ReportsList = () => {
                                   )}
                                   {report.isSponsored && (
                                     <div className="mt-2 p-2.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-250 dark:border-emerald-900/40 rounded-xl space-y-1">
-                                      <p className="text-emerald-600 dark:text-emerald-400 font-bold text-[9px] uppercase tracking-wider">💰 Sponsored Event</p>
+                                      <p className="text-emerald-600 dark:text-emerald-400 font-bold text-[9px] uppercase tracking-wider">Sponsored Event</p>
                                       <p className="text-vit-neutral-700 dark:text-vit-neutral-350 leading-relaxed font-semibold text-[10px]">
                                         <strong>Sponsor:</strong> {report.sponsorName} <span className="mx-1.5">•</span> <strong>Amount:</strong> ₹{report.sponsorAmount?.toLocaleString('en-IN') || 0}
                                       </p>
